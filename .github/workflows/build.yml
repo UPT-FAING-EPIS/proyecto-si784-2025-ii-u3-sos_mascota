@@ -38,22 +38,25 @@ jobs:
           flutter-version: '3.35.2'
 
       - name: Install dependencies
-        run: flutter pub get
-        working-directory: ./sos_mascota
+        run: |
+          cd sos_mascota
+          flutter pub get
 
       - name: Create Dummy Service Account
         run: |
+          cd sos_mascota
           mkdir -p assets/keys
           echo '{}' > assets/keys/service_account.json
-        working-directory: ./sos_mascota
 
       - name: Run Tests with Coverage
-        run: flutter test --coverage --dart-define=API_TOKEN="${{ secrets.API_TOKEN }}"
-        working-directory: ./sos_mascota
+        run: |
+          cd sos_mascota
+          flutter test --coverage --dart-define=API_TOKEN="${{ secrets.API_TOKEN }}"
+
       - name: Fix Coverage Paths
         run: |
+          cd sos_mascota
           sed -i "s|SF:lib/|SF:$GITHUB_WORKSPACE/sos_mascota/lib/|g" coverage/lcov.info
-        working-directory: ./sos_mascota
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6.0.0
