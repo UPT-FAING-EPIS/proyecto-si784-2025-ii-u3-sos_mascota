@@ -12,7 +12,7 @@ La app permite que los usuarios:
 - Reporten **mascotas perdidas o encontradas** con imagen, descripción y ubicación GPS.  
 - Reciban **notificaciones push** cuando se detectan coincidencias cercanas.  
 - Se **comuniquen mediante chat** en tiempo real para coordinar rescates.  
-- Usen **Inteligencia Artificial (TFLite + OpenAI)** para identificar el tipo de animal.  
+- Usen **Inteligencia Artificial (TFLite)** para identificar el tipo de animal.  
 - Participen en un **ranking colaborativo** de voluntarios confiables.
 
 > Proyecto académico desarrollado para el curso **Soluciones Móviles II – Universidad Privada de Tacna (UPT, 2025-II)**.
@@ -32,7 +32,6 @@ Brindar una solución tecnológica moderna y accesible que mejore la **efectivid
 | **Frontend móvil** | Flutter (Dart) |
 | **Backend y base de datos** | Firebase (Firestore, Auth, Storage, FCM) |
 | **IA local** | TensorFlow Lite |
-| **API externa** | OpenAI API |
 | **Arquitectura** | MVVM + SOLID |
 | **Control de versiones** | Git y GitHub |
 | **Automatización CI/CD** | GitHub Actions |
