@@ -231,24 +231,44 @@ jobs:
           fi
 
           # -------------------------------------------------------
-          # PROCESAMIENTO DE MUTATION TESTING
+          # PROCESAMIENTO DE MUTATION TESTING (ROBUSTO)
           # -------------------------------------------------------
           mkdir -p _site/reports/mutation
           
           if [ -d "artifacts/mutation-report-html" ]; then
-            # 1. Movemos el reporte generado al lugar temporal para procesarlo
-            # (El script de python busca en 'sos_mascota/mutation-test-report')
-            mkdir -p sos_mascota/mutation-test-report
-            cp -r artifacts/mutation-report-html/* sos_mascota/mutation-test-report/
+            echo "🔍 Buscando index.html dentro del artefacto..."
+            
+            # Buscamos la carpeta real que contiene el index.html (para evitar carpetas anidadas)
+            REAL_REPORT_DIR=$(find artifacts/mutation-report-html -name "index.html" | xargs dirname | head -n 1)
+            
+            if [ -n "$REAL_REPORT_DIR" ]; then
+                echo "✅ Reporte encontrado en: $REAL_REPORT_DIR"
+                
+                # Preparar directorio temporal para el script de Python
+                mkdir -p sos_mascota/mutation-test-report
+                
+                # Copiar el contenido REAL al directorio temporal
+                cp -r "$REAL_REPORT_DIR"/* sos_mascota/mutation-test-report/
 
-            # 2. Ejecutamos nuestro script de estilos (Limpio y fácil)
-            python sos_mascota/assets/style_mutation_report.py
+                # Ejecutar script de estilos
+                if [ -f "sos_mascota/assets/style_mutation_report.py" ]; then
+                    python sos_mascota/assets/style_mutation_report.py
+                else
+                    echo "⚠️ Script de estilos no encontrado."
+                fi
 
-            # 3. Movemos el resultado final "maquillado" al sitio web
-            mv sos_mascota/mutation-test-report/* _site/reports/mutation/
+                # Mover al sitio final
+                mv sos_mascota/mutation-test-report/* _site/reports/mutation/
+            else
+                echo "❌ No se encontró index.html en el artefacto."
+                echo "<h1>Error: Reporte generado pero sin index.html</h1>" > _site/reports/mutation/index.html
+            fi
           else
              echo "<h1>Reporte de Mutación no encontrado</h1>" > _site/reports/mutation/index.html
           fi
+          
+          # [IMPORTANTE] Evita que GitHub Pages oculte carpetas con guiones bajos
+          touch _site/.nojekyll
           # -------------------------------------------------------
 
           # [CRÍTICO] Copiar dashboard desde la subcarpeta assets
