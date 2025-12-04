@@ -2,7 +2,9 @@
 
 🔗 **Ver Repositorio con Pipeline Funcional:** [github.com/dennisdhm7/proyecto_sosmascota](https://github.com/dennisdhm7/proyecto_sosmascota)
 
-🔗 **Ver evidendencias de despliegue de App en otros dispositivos de estudiantes de la Upt:** [youtube](https://youtu.be/JPnnGd_emIo?si=jdu-8v0MOIeFXCKn)
+🔗 **Video Funcionamiento App SOS Mascota:** [https://youtu.be/q5smk8xjDO4](https://youtu.be/q5smk8xjDO4)
+
+🔗 **Ver evidendencias de despliegue de App en otros dispositivos de estudiantes de la Upt:** [https://youtu.be/JPnnGd_emIo?si=jdu-8v0MOIeFXCKn](https://youtu.be/JPnnGd_emIo?si=jdu-8v0MOIeFXCKn)
 
 ### 📱 Aplicación móvil colaborativa para la localización de mascotas perdidas
 
@@ -47,7 +49,43 @@ Brindar una solución tecnológica moderna y accesible que mejore la **efectivid
 | **Automatización CI/CD** | GitHub Actions |
 | **Diseño UI/UX** | Material Design 3 + Lottie Animations |
 
+
 ---
+
+## 🛡️ Calidad de Software y Pruebas Automatizadas (QA)
+
+Para garantizar la fiabilidad y seguridad de **SOS Mascota Tacna**, se ha implementado un pipeline de **CI/CD con GitHub Actions** que ejecuta automáticamente análisis estático, escaneo de vulnerabilidades y pruebas en cada *push* al repositorio.
+
+🔗 **[VER DASHBOARD DE CALIDAD EN VIVO](https://dennisdhm7.github.io/proyecto_sosmascota/)** *(Acceso centralizado a todos los reportes de Sonar, Semgrep, Trivy y Cobertura)*
+
+## 🔍 1. Análisis Estático y Seguridad (DevSecOps)
+
+Herramientas utilizadas para asegurar un código limpio y libre de vulnerabilidades.
+
+🔗 **Github Page** [https://upt-faing-epis.github.io/proyecto-si784-2025-ii-u3-sos_mascota/](https://upt-faing-epis.github.io/proyecto-si784-2025-ii-u3-sos_mascota/)
+
+| Herramienta | Tipo de Análisis | Estado | Reporte Detallado |
+| :--- | :--- | :---: | :--- |
+| **SonarCloud** | Calidad de Código, Bugs y Code Smells | ✅ **Passed** | [Ver Dashboard Sonar](https://sonarcloud.io/project/overview?id=dennisdhm7_proyecto_sosmascota) |
+| **Semgrep** | Seguridad Estática (SAST) | ✅ **0 Issues** | [Ver Reporte HTML](https://upt-faing-epis.github.io/proyecto-si784-2025-ii-u3-sos_mascota/reports/semgrep.html) |
+| **Trivy** | Seguridad de Dependencias (SCA) | ✅ **Clean** | [Ver Reporte HTML](https://upt-faing-epis.github.io/proyecto-si784-2025-ii-u3-sos_mascota/reports/trivy.html) |
+| **Flutter Analyze** | Linting y Reglas de Dart | ✅ **Passed** | *Integrado en Pipeline* |
+
+> **Nota:** Los reportes HTML son generados automáticamente y desplegados en GitHub Pages mediante el workflow de integración continua.
+
+---
+
+## 🧪 2. Pruebas Unitarias (Unit Testing)
+
+Se han desarrollado pruebas unitarias para validar la lógica de negocio y los ViewModels, asegurando que las funciones críticas (como la detección de IA o el cálculo de coincidencias) funcionen correctamente.
+
+* **Comando:** `flutter test --coverage`
+* **Cobertura:** Reporte generado con `ReportGenerator`.
+
+📊 **[Ver Reporte de Cobertura y Riesgo](https://upt-faing-epis.github.io/proyecto-si784-2025-ii-u3-sos_mascota/reports/risk_report/index.htm)**
+
+---
+
 #  FD02 – Wiki y el RoadMap
 📘 **Wiki del Proyecto:**  
 ➡️ [Home](https://github.com/UPT-FAING-EPIS/proyecto-si784-2025-ii-u2-sosmascota/wiki)  
