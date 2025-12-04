@@ -2,7 +2,15 @@
 
 🔗 **Ver Repositorio con Pipeline Funcional:** [github.com/dennisdhm7/proyecto_sosmascota](https://github.com/dennisdhm7/proyecto_sosmascota)
 
+🔗 **Ver evidendencias de despliegue de App en otros dispositivos de estudiantes de la Upt:** [youtube](https://youtu.be/JPnnGd_emIo?si=jdu-8v0MOIeFXCKn)
+
 ### 📱 Aplicación móvil colaborativa para la localización de mascotas perdidas
+
+Integrantes:
+
+- Christian Dennis Hinojosa Mucho		(2019065161)
+- Royser Alonsso Villanueva Mamani		(2021071090)
+- Gilmer Donaldo Mamani Condori		    (2012042779)
 
 ---
 
