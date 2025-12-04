@@ -1,4 +1,4 @@
-name: Pipeline Institucional (Sonar, Semgrep, Trivy)
+name: Pipeline Institucional (Flutter Analyze, Semgrep, Trivy)
 
 on:
   push:
@@ -13,21 +13,15 @@ permissions:
 
 jobs:
   # -----------------------------------------------------------------
-  # JOB 1: SONARCLOUD & TESTS
+  # JOB 1: FLUTTER ANALYZE & TESTS (Reemplazo de SonarCloud)
   # -----------------------------------------------------------------
-  sonarcloud:
-    name: SonarCloud & Tests
+  quality-checks:
+    name: Quality Checks (Analyze & Test)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0 
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-          distribution: 'zulu'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -35,45 +29,31 @@ jobs:
           channel: 'stable'
           flutter-version: '3.35.2'
 
-      # [CAMBIO] Entramos a la carpeta sos_mascota
+      # [CRÍTICO] Entramos a la carpeta del proyecto
       - name: Install dependencies
         working-directory: sos_mascota
         run: flutter pub get
 
-      # [CAMBIO] Ruta ajustada para la llave
+      # [CRÍTICO] Creamos la llave dentro de la carpeta del proyecto
       - name: Create Dummy Service Account
         run: |
           mkdir -p sos_mascota/assets/keys
           echo '{}' > sos_mascota/assets/keys/service_account.json
 
-      # [CAMBIO] Ejecutar tests DENTRO de la carpeta
+      # [NUEVO] Usamos Flutter Analyze en lugar de SonarCloud
+      - name: Run Flutter Analyze
+        working-directory: sos_mascota
+        run: flutter analyze
+
+      # [CRÍTICO] Tests dentro de la carpeta
       - name: Run Tests with Coverage
         working-directory: sos_mascota
         run: flutter test --coverage --dart-define=API_TOKEN="${{ secrets.API_TOKEN }}"
 
-      # [CAMBIO] Corregir rutas en lcov.info para que Sonar las entienda
-      # Importante: Sonar corre desde la raíz, así que le decimos que los archivos están en sos_mascota/lib/
+      # [CRÍTICO] Corregimos las rutas del LCOV para que coincidan con la estructura real
       - name: Fix Coverage Paths
         run: |
           sed -i "s|SF:lib/|SF:sos_mascota/lib/|g" sos_mascota/coverage/lcov.info
-
-      # [CAMBIO] Rutas de Sonar actualizadas a sos_mascota/...
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v6.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            "-Dsonar.organization=cdhm-projects" 
-            "-Dsonar.projectKey=cdhm-projects_proyecto-final"
-            "-Dsonar.sources=sos_mascota/lib"
-            "-Dsonar.tests=sos_mascota/test"
-            "-Dsonar.dart.lcov.reportPaths=sos_mascota/coverage/lcov.info"
-            "-Dsonar.coverage.reportPaths=sos_mascota/coverage/lcov.info"
-            "-Dsonar.exclusions=sos_mascota/test/**/*,sos_mascota/lib/**/*.g.dart,sos_mascota/lib/firebase_options.dart"
-            
-            # NOTA: Revisa que el 'organization' y 'projectKey' coincidan con los de tu SonarCloud nuevo
 
   # -----------------------------------------------------------------
   # JOB 2: SEMGREP
@@ -85,13 +65,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      # [CAMBIO] Escaneamos ESPECÍFICAMENTE la carpeta sos_mascota
+      # [CRÍTICO] Escaneamos incluyendo la subcarpeta
       - name: Run Semgrep
         run: |
           docker run --rm -v "${PWD}:/src" returntocorp/semgrep \
           semgrep scan --config=p/default --config=p/security-audit --config=p/secrets --sarif -o /src/semgrep.sarif --include=sos_mascota
 
-      # [CAMBIO] El script de python ahora vive dentro de sos_mascota/assets
+      # [CRÍTICO] Buscamos el script Python en la subcarpeta
       - name: Convert SARIF to HTML (Custom Design)
         run: python sos_mascota/assets/sarif_to_html.py
 
@@ -102,7 +82,7 @@ jobs:
           path: semgrep-report.html
 
   # -----------------------------------------------------------------
-  # JOB 3: TRIVY (PERSONALIZADO)
+  # JOB 3: TRIVY
   # -----------------------------------------------------------------
   security-trivy:
     name: Security - Trivy
@@ -119,7 +99,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install trivy -y
       
-      # [CAMBIO] Trivy escanea la carpeta 'sos_mascota' y busca el template ahí dentro
+      # [CRÍTICO] Apuntamos a la carpeta sos_mascota y a su template interno
       - name: Run Trivy with Custom Template
         run: |
           trivy fs sos_mascota --format template --template "@sos_mascota/assets/trivy-custom.tpl" --output trivy-report.html --severity CRITICAL,HIGH --ignore-unfixed || true
@@ -136,7 +116,7 @@ jobs:
   generate-report:
     name: Generate Risk Report
     runs-on: ubuntu-latest
-    needs: sonarcloud
+    needs: quality-checks  # [CRÍTICO] Depende del nuevo job quality-checks
     steps:
       - uses: actions/checkout@v3
       - name: Install .NET SDK 8.0
@@ -148,7 +128,7 @@ jobs:
       - name: Add ReportGenerator to Path
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
       
-      # [CAMBIO] Copiar lcov desde la subcarpeta
+      # [CRÍTICO] Copiamos el lcov desde la subcarpeta a la raíz del runner
       - name: Copy lcov.info
         run: cp ${{ github.workspace }}/sos_mascota/coverage/lcov.info .
 
@@ -166,7 +146,8 @@ jobs:
   build-docs:
     name: Build Portal & Deploy
     runs-on: ubuntu-latest
-    needs: [sonarcloud, security-trivy, security-semgrep, generate-report]
+    # [CRÍTICO] Lista de dependencias actualizada
+    needs: [quality-checks, security-trivy, security-semgrep, generate-report]
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
@@ -177,12 +158,12 @@ jobs:
           channel: 'stable'
           flutter-version: '3.35.2'
       
-      # [CAMBIO] Directorio de trabajo
+      # [CRÍTICO] Working directory
       - name: Install dependencies
         working-directory: sos_mascota
         run: flutter pub get
 
-      # [CAMBIO] Directorio de trabajo para Dart Doc
+      # [CRÍTICO] Generar docs desde la subcarpeta
       - name: Generate Dart API Docs
         working-directory: sos_mascota
         run: dart doc .
@@ -198,27 +179,25 @@ jobs:
           mkdir -p _site/reports
           mkdir -p _site/reports/risk_report
           
-          # [CAMBIO] Mover DartDocs desde la subcarpeta sos_mascota/doc/api
+          # [CRÍTICO] Mover DartDocs desde la subcarpeta
           mv sos_mascota/doc/api _site/dartdoc
           
-          # Mover Risk Report (Igual que antes)
+          # Mover reportes (igual que antes)
           mv artifacts/risk-coverage-report/* _site/reports/risk_report/
           
-          # Mover Semgrep
           if [ -f artifacts/semgrep-html/semgrep-report.html ]; then
             mv artifacts/semgrep-html/semgrep-report.html _site/reports/semgrep.html
           else
              echo "<h1>Reporte Semgrep no encontrado</h1>" > _site/reports/semgrep.html
           fi
 
-          # Mover Trivy
           if [ -f artifacts/trivy-html/trivy-report.html ]; then
             mv artifacts/trivy-html/trivy-report.html _site/reports/trivy.html
           else
              echo "<h1>Reporte Trivy no encontrado</h1>" > _site/reports/trivy.html
           fi
 
-          # [CAMBIO] Copiar el Dashboard desde sos_mascota/assets
+          # [CRÍTICO] Copiar dashboard desde la subcarpeta assets
           cp sos_mascota/assets/dashboard.html _site/index.html
 
           # Limpieza
