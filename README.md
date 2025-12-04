@@ -1,5 +1,7 @@
 # 🐶 SOS Mascota Tacna
 
+🔗 **Ver Repositorio con Pipeline Funcional:** [github.com/dennisdhm7/proyecto_sosmascota](https://github.com/dennisdhm7/proyecto_sosmascota)
+
 ### 📱 Aplicación móvil colaborativa para la localización de mascotas perdidas
 
 ---
@@ -15,7 +17,7 @@ La app permite que los usuarios:
 - Usen **Inteligencia Artificial (TFLite)** para identificar el tipo de animal.  
 - Participen en un **ranking colaborativo** de voluntarios confiables.
 
-> Proyecto académico desarrollado para el curso **Soluciones Móviles II – Universidad Privada de Tacna (UPT, 2025-II)**.
+> Proyecto académico desarrollado para el curso **Calidad y Pruebas de Software – Universidad Privada de Tacna (UPT, 2025-II)**.
 
 ---
 
@@ -181,4 +183,6 @@ Este diagrama refleja cómo se **interconectan los servicios en la nube** y los 
 | 8️⃣ | **Diagrama de Infraestructura – Servicios y Comunicación** | `diagrama_infraestructura.png` | Ilustra las capas tecnológicas y la comunicación entre Flutter SDK, Firebase, TensorFlow Lite y OpenStreetMap. |
 
 ---
+
+🔗 **Ver Repositorio con Pipeline Funcional:** [github.com/dennisdhm7/proyecto_sosmascota](https://github.com/dennisdhm7/proyecto_sosmascota)
 
