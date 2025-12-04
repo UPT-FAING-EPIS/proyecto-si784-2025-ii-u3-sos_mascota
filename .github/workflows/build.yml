@@ -239,8 +239,8 @@ jobs:
             echo "📂 Contenido del artefacto:"
             ls -R artifacts/mutation-report-html
             
-            # Buscar CUALQUIER archivo .html principal (index.html o report.html)
-            REPORT_FILE=$(find artifacts/mutation-report-html -name "*.html" | head -n 1)
+            # Buscar CUALQUIER archivo .html principal (index.html, report.html, mutation-test-report.html, etc.)
+            REPORT_FILE=$(find artifacts/mutation-report-html -name "*.html" -type f | head -n 1)
             
             if [ -n "$REPORT_FILE" ]; then
                 echo "✅ Archivo de reporte encontrado: $REPORT_FILE"
@@ -248,33 +248,31 @@ jobs:
                 # Obtener la carpeta donde está ese archivo
                 REPORT_DIR=$(dirname "$REPORT_FILE")
                 
-                # Preparar directorio temporal
-                mkdir -p sos_mascota/mutation-test-report
-                
-                # Copiar TODO el contenido de esa carpeta al temporal
-                cp -r "$REPORT_DIR"/* sos_mascota/mutation-test-report/
+                # Copiar TODO el contenido de esa carpeta al sitio final
+                cp -r "$REPORT_DIR"/* _site/reports/mutation/
                 
                 # Renombrar el archivo HTML principal a index.html si tiene otro nombre
                 BASENAME=$(basename "$REPORT_FILE")
                 if [ "$BASENAME" != "index.html" ]; then
-                    mv "sos_mascota/mutation-test-report/$BASENAME" "sos_mascota/mutation-test-report/index.html"
+                    if [ -f "_site/reports/mutation/$BASENAME" ]; then
+                        mv "_site/reports/mutation/$BASENAME" "_site/reports/mutation/index.html"
+                        echo "✅ Renombrado $BASENAME a index.html"
+                    fi
                 fi
 
-                # Ejecutar script de estilos
+                # Ejecutar script de estilos si existe
                 if [ -f "sos_mascota/assets/style_mutation_report.py" ]; then
                     python sos_mascota/assets/style_mutation_report.py
                 else
                     echo "⚠️ Script de estilos no encontrado."
                 fi
-
-                # Mover al sitio final
-                mv sos_mascota/mutation-test-report/* _site/reports/mutation/
             else
                 echo "❌ No se encontró ningún archivo .html en el artefacto."
                 echo "<h1>Error: El artefacto no contiene reportes HTML</h1>" > _site/reports/mutation/index.html
             fi
           else
-             echo "<h1>Artefacto de mutación no descargado</h1>" > _site/reports/mutation/index.html
+             echo "❌ Artefacto de mutación no encontrado en artifacts/mutation-report-html"
+             echo "<h1>Error: Artefacto de mutación no descargado</h1>" > _site/reports/mutation/index.html
           fi
           
           touch _site/.nojekyll
