@@ -231,24 +231,34 @@ jobs:
           fi
 
           # -------------------------------------------------------
-          # PROCESAMIENTO DE MUTATION TESTING (ROBUSTO)
+          # PROCESAMIENTO DE MUTATION TESTING (VERSIÓN FINAL)
           # -------------------------------------------------------
           mkdir -p _site/reports/mutation
           
           if [ -d "artifacts/mutation-report-html" ]; then
-            echo "🔍 Buscando index.html dentro del artefacto..."
+            echo "📂 Contenido del artefacto:"
+            ls -R artifacts/mutation-report-html
             
-            # Buscamos la carpeta real que contiene el index.html (para evitar carpetas anidadas)
-            REAL_REPORT_DIR=$(find artifacts/mutation-report-html -name "index.html" | xargs dirname | head -n 1)
+            # Buscar CUALQUIER archivo .html principal (index.html o report.html)
+            REPORT_FILE=$(find artifacts/mutation-report-html -name "*.html" | head -n 1)
             
-            if [ -n "$REAL_REPORT_DIR" ]; then
-                echo "✅ Reporte encontrado en: $REAL_REPORT_DIR"
+            if [ -n "$REPORT_FILE" ]; then
+                echo "✅ Archivo de reporte encontrado: $REPORT_FILE"
                 
-                # Preparar directorio temporal para el script de Python
+                # Obtener la carpeta donde está ese archivo
+                REPORT_DIR=$(dirname "$REPORT_FILE")
+                
+                # Preparar directorio temporal
                 mkdir -p sos_mascota/mutation-test-report
                 
-                # Copiar el contenido REAL al directorio temporal
-                cp -r "$REAL_REPORT_DIR"/* sos_mascota/mutation-test-report/
+                # Copiar TODO el contenido de esa carpeta al temporal
+                cp -r "$REPORT_DIR"/* sos_mascota/mutation-test-report/
+                
+                # Renombrar el archivo HTML principal a index.html si tiene otro nombre
+                BASENAME=$(basename "$REPORT_FILE")
+                if [ "$BASENAME" != "index.html" ]; then
+                    mv "sos_mascota/mutation-test-report/$BASENAME" "sos_mascota/mutation-test-report/index.html"
+                fi
 
                 # Ejecutar script de estilos
                 if [ -f "sos_mascota/assets/style_mutation_report.py" ]; then
@@ -260,14 +270,13 @@ jobs:
                 # Mover al sitio final
                 mv sos_mascota/mutation-test-report/* _site/reports/mutation/
             else
-                echo "❌ No se encontró index.html en el artefacto."
-                echo "<h1>Error: Reporte generado pero sin index.html</h1>" > _site/reports/mutation/index.html
+                echo "❌ No se encontró ningún archivo .html en el artefacto."
+                echo "<h1>Error: El artefacto no contiene reportes HTML</h1>" > _site/reports/mutation/index.html
             fi
           else
-             echo "<h1>Reporte de Mutación no encontrado</h1>" > _site/reports/mutation/index.html
+             echo "<h1>Artefacto de mutación no descargado</h1>" > _site/reports/mutation/index.html
           fi
           
-          # [IMPORTANTE] Evita que GitHub Pages oculte carpetas con guiones bajos
           touch _site/.nojekyll
           # -------------------------------------------------------
 
