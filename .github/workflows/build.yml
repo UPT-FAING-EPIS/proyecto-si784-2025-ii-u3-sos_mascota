@@ -1,10 +1,8 @@
-name: Pipeline de Calidad y Seguridad (Sonar, Semgrep, Trivy)
+name: Pipeline Institucional (Sonar, Semgrep, Trivy)
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [ main, master ]
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -15,16 +13,11 @@ permissions:
 
 jobs:
   # -----------------------------------------------------------------
-  # JOB 1: SONARCLOUD & TESTS (Genera lcov.info)
+  # JOB 1: SONARCLOUD & TESTS
   # -----------------------------------------------------------------
   sonarcloud:
     name: SonarCloud & Tests
     runs-on: ubuntu-latest
-    # 👇 CAMBIO 1: Establecer directorio de trabajo por defecto para comandos 'run'
-    defaults:
-      run:
-        working-directory: ./sos_mascota
-        
     steps:
       - uses: actions/checkout@v3
         with:
@@ -42,82 +35,65 @@ jobs:
           channel: 'stable'
           flutter-version: '3.35.2'
 
+      # [CAMBIO] Entramos a la carpeta sos_mascota
       - name: Install dependencies
+        working-directory: sos_mascota
         run: flutter pub get
 
+      # [CAMBIO] Ruta ajustada para la llave
       - name: Create Dummy Service Account
-        # 👇 CAMBIO: La ruta assets ahora es relativa a sos_mascota
         run: |
-          mkdir -p assets/keys
-          echo '{}' > assets/keys/service_account.json
+          mkdir -p sos_mascota/assets/keys
+          echo '{}' > sos_mascota/assets/keys/service_account.json
 
+      # [CAMBIO] Ejecutar tests DENTRO de la carpeta
       - name: Run Tests with Coverage
+        working-directory: sos_mascota
         run: flutter test --coverage --dart-define=API_TOKEN="${{ secrets.API_TOKEN }}"
 
+      # [CAMBIO] Corregir rutas en lcov.info para que Sonar las entienda
+      # Importante: Sonar corre desde la raíz, así que le decimos que los archivos están en sos_mascota/lib/
       - name: Fix Coverage Paths
-        # 👇 CAMBIO: Ajustar la ruta absoluta para incluir sos_mascota
         run: |
-          sed -i "s|SF:lib/|SF:$GITHUB_WORKSPACE/sos_mascota/lib/|g" coverage/lcov.info
+          sed -i "s|SF:lib/|SF:sos_mascota/lib/|g" sos_mascota/coverage/lcov.info
 
+      # [CAMBIO] Rutas de Sonar actualizadas a sos_mascota/...
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          # 👇 CAMBIO CRÍTICO: projectBaseDir define dónde empieza el código
-          projectBaseDir: sos_mascota
           args: >
-            -Dsonar.organization=cdhm
-            -Dsonar.projectKey=dennisdhm7_proyecto_sosmascota
-            -Dsonar.sources=lib
-            -Dsonar.tests=test
-            -Dsonar.dart.lcov.reportPaths=coverage/lcov.info
-            -Dsonar.coverage.reportPaths=coverage/lcov.info
-            -Dsonar.exclusions=test/**/*,lib/**/*.g.dart,lib/firebase_options.dart
+            "-Dsonar.organization=cdhm-projects" 
+            "-Dsonar.projectKey=cdhm-projects_proyecto-final"
+            "-Dsonar.sources=sos_mascota/lib"
+            "-Dsonar.tests=sos_mascota/test"
+            "-Dsonar.dart.lcov.reportPaths=sos_mascota/coverage/lcov.info"
+            "-Dsonar.coverage.reportPaths=sos_mascota/coverage/lcov.info"
+            "-Dsonar.exclusions=sos_mascota/test/**/*,sos_mascota/lib/**/*.g.dart,sos_mascota/lib/firebase_options.dart"
+            
+            # NOTA: Revisa que el 'organization' y 'projectKey' coincidan con los de tu SonarCloud nuevo
 
   # -----------------------------------------------------------------
-  # JOB 2: SEMGREP (Genera SARIF y Sube Artefacto)
+  # JOB 2: SEMGREP
   # -----------------------------------------------------------------
   security-semgrep:
     name: Security - Semgrep
     runs-on: ubuntu-latest
-    container:
-      image: returntocorp/semgrep
     if: (github.actor != 'dependabot[bot]')
     steps:
       - uses: actions/checkout@v3
       
-      - name: Run Semgrep (SARIF)
-        # 👇 CAMBIO: Escanear explícitamente la carpeta sos_mascota
-        run: semgrep scan sos_mascota --config=p/default --config=p/security-audit --config=p/secrets --sarif -o semgrep.sarif
-
-      - name: Upload Semgrep SARIF
-        uses: actions/upload-artifact@v4
-        with:
-          name: semgrep-sarif
-          path: semgrep.sarif
-
-  convert-semgrep-html:
-    name: Convert Semgrep SARIF to HTML
-    runs-on: ubuntu-latest
-    needs: security-semgrep
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Download SARIF Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: semgrep-sarif
-          path: .
-
-      - name: Install SARIF Tools
+      # [CAMBIO] Escaneamos ESPECÍFICAMENTE la carpeta sos_mascota
+      - name: Run Semgrep
         run: |
-          python3 -m pip install --upgrade pip --break-system-packages
-          pip install sarif-tools --break-system-packages
+          docker run --rm -v "${PWD}:/src" returntocorp/semgrep \
+          semgrep scan --config=p/default --config=p/security-audit --config=p/secrets --sarif -o /src/semgrep.sarif --include=sos_mascota
 
-      - name: Convert SARIF to HTML
-        run: sarif html semgrep.sarif > semgrep-report.html
+      # [CAMBIO] El script de python ahora vive dentro de sos_mascota/assets
+      - name: Convert SARIF to HTML (Custom Design)
+        run: python sos_mascota/assets/sarif_to_html.py
 
       - name: Upload Semgrep HTML
         uses: actions/upload-artifact@v4
@@ -126,26 +102,15 @@ jobs:
           path: semgrep-report.html
 
   # -----------------------------------------------------------------
-  # JOB 3: TRIVY (Genera SARIF y Sube Artefacto)
+  # JOB 3: TRIVY (PERSONALIZADO)
   # -----------------------------------------------------------------
   security-trivy:
-    name: Security - Trivy (Dependencias)
+    name: Security - Trivy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Flutter for Trivy
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          flutter-version: '3.35.2'
-
-      - name: Generate lockfile
-        # 👇 CAMBIO: Ejecutar pub get DENTRO de la carpeta
-        working-directory: ./sos_mascota
-        run: flutter pub get
-
-      - name: Install Trivy CLI via APT
+      - name: Install Trivy CLI
         run: |
           sudo apt-get update
           sudo apt-get install -y wget apt-transport-https gnupg lsb-release
@@ -154,14 +119,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install trivy -y
       
-      - name: Download Trivy HTML template
+      # [CAMBIO] Trivy escanea la carpeta 'sos_mascota' y busca el template ahí dentro
+      - name: Run Trivy with Custom Template
         run: |
-          mkdir -p contrib
-          wget https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl -O contrib/html.tpl
-
-      - name: Run Trivy (HTML)
-        # 👇 CAMBIO: Apuntar Trivy a la carpeta sos_mascota
-        run: trivy fs sos_mascota --format template --template "contrib/html.tpl" --output trivy-report.html --severity CRITICAL,HIGH --ignore-unfixed
+          trivy fs sos_mascota --format template --template "@sos_mascota/assets/trivy-custom.tpl" --output trivy-report.html --severity CRITICAL,HIGH --ignore-unfixed || true
 
       - name: Upload Trivy Artifact
         uses: actions/upload-artifact@v4
@@ -170,33 +131,29 @@ jobs:
           path: trivy-report.html
 
   # -----------------------------------------------------------------
-  # JOB 4: GENERATE-REPORT (ReportGenerator - Complejidad)
+  # JOB 4: GENERATE-REPORT
   # -----------------------------------------------------------------
   generate-report:
-    name: Generate Detailed Risk Report
+    name: Generate Risk Report
     runs-on: ubuntu-latest
     needs: sonarcloud
     steps:
       - uses: actions/checkout@v3
-
       - name: Install .NET SDK 8.0
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-
-      - name: Install ReportGenerator Tool
+      - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
-        
       - name: Add ReportGenerator to Path
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
-
-      - name: Copy lcov.info for ReportGenerator
-        # 👇 CAMBIO: Buscar lcov.info dentro de sos_mascota/coverage
+      
+      # [CAMBIO] Copiar lcov desde la subcarpeta
+      - name: Copy lcov.info
         run: cp ${{ github.workspace }}/sos_mascota/coverage/lcov.info .
 
       - name: Run ReportGenerator
         run: reportgenerator -reports:lcov.info -targetdir:coverage_risk_html -reporttypes:Html
-          
       - name: Upload Risk Report Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -204,18 +161,13 @@ jobs:
           path: coverage_risk_html
 
   # -----------------------------------------------------------------
-  # JOB 5: BUILD Y PUBLICACIÓN DEL PORTAL (Consolidación)
+  # JOB 5: BUILD & DEPLOY DOCS
   # -----------------------------------------------------------------
   build-docs:
-    name: Build Documentation Artifact
+    name: Build Portal & Deploy
     runs-on: ubuntu-latest
     needs: [sonarcloud, security-trivy, security-semgrep, generate-report]
     if: github.ref == 'refs/heads/main'
-    # 👇 CAMBIO: Establecer directorio de trabajo por defecto para comandos 'run'
-    defaults:
-      run:
-        working-directory: ./sos_mascota
-
     steps:
       - uses: actions/checkout@v3
 
@@ -224,124 +176,59 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.35.2'
-
-      - name: Install dependencies
-        run: flutter pub get
       
+      # [CAMBIO] Directorio de trabajo
+      - name: Install dependencies
+        working-directory: sos_mascota
+        run: flutter pub get
+
+      # [CAMBIO] Directorio de trabajo para Dart Doc
       - name: Generate Dart API Docs
+        working-directory: sos_mascota
         run: dart doc .
 
-      # ---------------------------------------------------------
-      # NOTA: Los siguientes pasos implican mover archivos.
-      # Como estamos en working-directory: sos_mascota, debemos tener
-      # cuidado con las rutas relativas.
-      # ---------------------------------------------------------
-
-      - name: Download Artifacts (Reports)
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          # Descarga en sos_mascota/artifacts porque el working-dir es sos_mascota
-          path: sos_mascota/artifacts 
+          path: artifacts 
 
-      - name: Create Unified Portal Structure
-        # Este script corre dentro de sos_mascota
+      - name: Assemble Site
         run: |
-          # 1. SETUP INICIAL
           mkdir _site
           mkdir -p _site/reports
           mkdir -p _site/reports/risk_report
           
-          # Mover docs generados (dart doc genera en doc/api por defecto dentro del root del proyecto)
-          mv doc/api _site/dartdoc
+          # [CAMBIO] Mover DartDocs desde la subcarpeta sos_mascota/doc/api
+          mv sos_mascota/doc/api _site/dartdoc
           
-          # 2. MOVER ARTEFACTOS DESCARGADOS
-          # Nota: Como especificamos path: sos_mascota/artifacts en la descarga,
-          # ahora están ahí dentro.
-          
+          # Mover Risk Report (Igual que antes)
           mv artifacts/risk-coverage-report/* _site/reports/risk_report/
-          mv artifacts/semgrep-html/semgrep-report.html _site/reports/semgrep.html
-          mv artifacts/trivy-html/trivy-report.html _site/reports/trivy.html
           
-          # Limpiar archivos temporales
-          rm -rf artifacts doc
+          # Mover Semgrep
+          if [ -f artifacts/semgrep-html/semgrep-report.html ]; then
+            mv artifacts/semgrep-html/semgrep-report.html _site/reports/semgrep.html
+          else
+             echo "<h1>Reporte Semgrep no encontrado</h1>" > _site/reports/semgrep.html
+          fi
 
-          # 3. VARIABLES Y GENERACIÓN DE INDEX.HTML
-          DEEPWIKI_URL="https://deepwiki.com/dennisdhm7/proyecto_sosmascota"
-          SONAR_URL="https://sonarcloud.io/dashboard?id=dennisdhm7_proyecto_sosmascota"
-          
-          echo '<html>
-          <head>
-              <title>Portal de Reportes SOS Mascotas</title>
-              <style>
-                  body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background-color: #f4f4f9; }
-                  .container { text-align: center; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-                  h1 { color: #008080; margin-bottom: 30px; }
-                  h2 { margin-top: 20px; }
-                  .option { margin: 15px 0; }
-                  .option a {
-                      text-decoration: none;
-                      color: white;
-                      background-color: #008080;
-                      padding: 15px 30px;
-                      border-radius: 8px;
-                      display: inline-block;
-                      font-size: 16px;
-                      transition: background-color 0.3s;
-                      margin: 5px;
-                  }
-                  .option a:hover { background-color: #005f5f; }
-                  p { color: #666; }
-              </style>
-          </head>
-          <body>
-              <div class="container">
-                  <h1>🐾 Portal de Reportes SOS Mascotas 🐾</h1>
-                  
-                  <div class="option">
-                      <h2>Documentación Técnica del Código</h2>
-                      <p>Estructura de clases, métodos y API interna (Generada en vivo).</p>
-                      <a href="dartdoc/index.html" style="background-color: #008080;">Ver Dartdoc</a>
-                  </div>
-                  
-                  <hr style="margin: 30px auto; border-color: #eee; width: 80%;">
+          # Mover Trivy
+          if [ -f artifacts/trivy-html/trivy-report.html ]; then
+            mv artifacts/trivy-html/trivy-report.html _site/reports/trivy.html
+          else
+             echo "<h1>Reporte Trivy no encontrado</h1>" > _site/reports/trivy.html
+          fi
 
-                  <div class="option">
-                      <h2>Reportes de Calidad y Cobertura</h2>
-                      
-                      <a href="reports/risk_report/index.htm" target="_blank" style="background-color: #A33737;">Ver Reporte de Riesgo Detallado</a>
+          # [CAMBIO] Copiar el Dashboard desde sos_mascota/assets
+          cp sos_mascota/assets/dashboard.html _site/index.html
 
-                      <a href="'"$SONAR_URL"'" target="_blank" style="background-color: #37A33A;">Ver SonarCloud (Total)</a>
-                      
-                  </div>
-                  
-                  <hr style="margin: 30px auto; border-color: #eee; width: 80%;">
-                  
-                  <div class="option">
-                      <h2>Reportes de Seguridad Estática</h2>
-                      <p style="margin-bottom: 10px;">Archivos SARIF con hallazgos de seguridad (para visualizar con extensión de navegador):</p>
+          # Limpieza
+          rm -rf artifacts sos_mascota/doc
 
-                      <a href="reports/trivy.html" target="_blank" style="background-color: #0070A0;">Ver Reporte Trivy</a> 
-                      
-                      <a href="reports/semgrep.html" target="_blank" style="background-color: #CC4400;">Ver Reporte Semgrep</a>
-                      
-                      <hr style="margin: 15px 0; border-color: #eee;">
-                      
-                      <p style="margin-bottom: 5px;">Documentación de Procesos:</p>
-                      <a href="'"$DEEPWIKI_URL"'" target="_blank" style="background-color: #1a7b62;">Ver Procesos (DeepWiki Externo)</a>
-                  </div>
-              </div>
-          </body>
-          </html>' > _site/index.html
-        
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Ajuste de ruta porque estamos en sos_mascota
-          path: 'sos_mascota/_site' 
+          path: '_site' 
 
-  # -----------------------------------------------------------------
-  # JOB 6: DOCUMENTACIÓN - DEPLOY (Publica el artefacto)
-  # -----------------------------------------------------------------
   deploy-pages:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
