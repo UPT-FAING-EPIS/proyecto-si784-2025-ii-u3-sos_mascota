@@ -141,7 +141,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mutation-report-html
-          path: sos_mascota/mutation-report
+          path: sos_mascota/mutation-test-report
 
   # -----------------------------------------------------------------
   # JOB 5: GENERATE-REPORT
@@ -230,12 +230,26 @@ jobs:
              echo "<h1>Reporte Trivy no encontrado</h1>" > _site/reports/trivy.html
           fi
 
+          # -------------------------------------------------------
+          # PROCESAMIENTO DE MUTATION TESTING
+          # -------------------------------------------------------
           mkdir -p _site/reports/mutation
+          
           if [ -d "artifacts/mutation-report-html" ]; then
-            mv artifacts/mutation-report-html/* _site/reports/mutation/
+            # 1. Movemos el reporte generado al lugar temporal para procesarlo
+            # (El script de python busca en 'sos_mascota/mutation-test-report')
+            mkdir -p sos_mascota/mutation-test-report
+            cp -r artifacts/mutation-report-html/* sos_mascota/mutation-test-report/
+
+            # 2. Ejecutamos nuestro script de estilos (Limpio y fácil)
+            python sos_mascota/assets/style_mutation_report.py
+
+            # 3. Movemos el resultado final "maquillado" al sitio web
+            mv sos_mascota/mutation-test-report/* _site/reports/mutation/
           else
              echo "<h1>Reporte de Mutación no encontrado</h1>" > _site/reports/mutation/index.html
           fi
+          # -------------------------------------------------------
 
           # [CRÍTICO] Copiar dashboard desde la subcarpeta assets
           cp sos_mascota/assets/dashboard.html _site/index.html
