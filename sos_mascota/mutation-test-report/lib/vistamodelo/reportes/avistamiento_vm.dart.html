@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+.collapsible {
+  color: black;
+  cursor: pointer;
+  padding: 0px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+}
+
+.hit {
+  background-color: #DAE7FE;
+}
+
+.covered {
+  background-color: #9EFF83;
+}
+.instrumented {
+  background-color: #FF8983;
+}
+
+.hit:hover {
+  color: white;
+  background-color: #6688D4;
+}
+
+.problem {
+  background-color: #FF6230;
+}
+
+.problem:hover {
+  background-color: #FF0000;
+}
+
+span.lineNumber
+{
+  display: inline-block;
+  color: black;
+  background-color: #EFE383;
+}
+
+.addedLine {
+background-color: rgb(200, 255, 200)
+}
+.changedTokens {
+background-color: rgb(50, 255, 50)
+}
+
+pre
+{
+  font-family: monospace;
+  white-space: pre;
+}
+
+pre.fileContents
+{
+  margin: 0px;
+}
+
+.content {
+  padding: 0 18px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease-out;
+  background-color: #f1f1f1;
+}
+table{
+    border-collapse: collapse;
+}
+
+hr.ruler
+{
+  height:3px;
+  border-width:0;
+  color:#6688D4;
+  background-color:#6688D4
+}
+td.title
+{
+  text-align: center;
+  padding-bottom: 10px;
+  font-family: Helvetica, sans-serif;
+  font-size: 20pt;
+  font-style: italic;
+  font-weight: bold;
+}
+td.footer {
+  text-align: center;
+  padding-bottom: 10px;
+  font-family: Helvetica, sans-serif;
+  font-size: 12pt;
+}
+
+td.ItemLabel
+{
+  text-align: right;
+  padding-right: 6px;
+  font-family: sans-serif;
+  font-weight: bold;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+td.mutationLabel
+{
+  text-align: right;
+  padding-right: 6px;
+  font-weight: bold;
+  vertical-align: top;
+}
+
+td.mutationText
+{
+  text-align: left;
+  vertical-align: top;
+}
+
+td.ItemText
+{
+  text-align: left;
+  padding-right: 6px;
+  font-family: sans-serif;
+  font-weight: bold;
+  color:#6688D4;
+  white-space: nowrap;
+}
+
+td.ItemReport
+{
+  text-align: right;
+  color: #284FA8;
+  font-family: sans-serif;
+  font-weight: bold;
+  white-space: nowrap;
+  padding-left: 6px;
+  padding-right: 6px;
+  background-color: #DAE7FE;
+  border-collapse: unset;
+  border: 2px;
+  border-color: white;
+  border-style: solid;
+}
+
+td.FileLink
+{
+  text-align: left;
+  color: #284FA8;
+  font-family: sans-serif;
+  font-weight: bold;
+  white-space: nowrap;
+  padding-left: 6px;
+  padding-right: 6px;
+  background-color: #DAE7FE;
+  border-collapse: unset;
+  border: 2px;
+  border-color: white;
+  border-style: solid;
+}
+
+td.ItemReportHigh
+{
+  text-align: right;
+  color: black;
+  font-family: sans-serif;
+  font-weight: bold;
+  white-space: nowrap;
+  padding-left: 6px;
+  padding-right: 6px;
+  background-color: #A7FC9D;
+  border-collapse: unset;
+  border: 2px;
+  border-color: white;
+  border-style: solid;
+}
+
+td.ItemReportMedium
+{
+  text-align: right;
+  color: black;
+  font-family: sans-serif;
+  font-weight: bold;
+  white-space: nowrap;
+  padding-left: 6px;
+  padding-right: 6px;
+  background-color: #FFEA20;
+  border-collapse: unset;
+  border: 2px;
+  border-color: white;
+  border-style: solid;
+}
+
+td.ItemReportLow
+{
+  text-align: right;
+  color: black;
+  font-family: sans-serif;
+  font-weight: bold;
+  white-space: nowrap;
+  padding-left: 6px;
+  padding-right: 6px;
+  background-color: #FF0000;
+  border-collapse: unset;
+  border: 2px;
+  border-color: white;
+  border-style: solid;
+}
+
+td.MiddleHeader
+{
+  text-align: center;
+  padding-right: 6px;
+  padding-left: 6px;
+  font-family: sans-serif;
+  white-space: nowrap;
+}
+
+td.ItemHead
+{
+  text-align: center;
+  color: white;
+  font-family: sans-serif;
+  font-weight: bold;
+  white-space: nowrap;
+  padding-left: 6px;
+  padding-right: 6px;
+  background-color: #6688D4;
+  border-collapse: unset;
+  border: 1px;
+  border-color: white;
+  border-style: solid;
+}
+
+td.barHi
+{
+  background-color: #00eb00;
+}
+
+td.barMed
+{
+  background-color: #FFEA20;
+}
+
+td.barLo
+{
+  background-color: #ff0000;
+}
+
+td.barBg
+{
+  background-color: #FFFFFF;
+}
+
+.match {
+  text-align: right;
+  position: relative;
+}
+
+.match .tooltip {
+  visibility: hidden;
+  background-color: #bbb;
+  color: black;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 5px;
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  right: 0%;
+}
+
+.match:hover .tooltip {
+  visibility: visible;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    color: #c9d1d9;
+    background: #141517;
+  }
+  td.ItemReport, td.FileLink, td.ItemReportHigh, td.ItemReportMedium, td.ItemReportLow, td.ItemHead {
+    border-color: #152035;
+  }
+  td.ItemReport, td.FileLink {
+    color: #DAE7FE;
+    background-color: #141517;
+  }
+  td.ItemReportHigh, td.ItemReportMedium, td.ItemReportLow, td.barBg {
+    background-color: #141517;
+  }
+  td.ItemReportHigh {
+    color: #A7FC9D;
+  }
+  td.ItemReportMedium {
+    color: #FFEA20;
+  }
+  td.ItemReportLow {
+    color: #FF0000;
+  }
+  span.lineNumber {
+    color: white;
+    background-color: #26334F;
+  }
+  .collapsible {
+    color: #c9d1d9;
+  }
+  .content {
+    color: #c9d1d9;
+    background-color: #1B2539;
+  }
+  .hit {
+    background-color: #26334F;
+  }
+  .covered {
+    background-color: #0A3302;
+  }
+  .instrumented {
+    background-color: #391D1D;
+  }
+  .addedLine {
+    background-color: rgb(37, 83, 37);
+  }
+  .changedTokens {
+    background-color: rgb(32, 145, 32);
+  }
+  .problem {
+    background-color: #62200B;
+  }
+  a:link, a:visited  {
+	  color: #58a6ff;
+	}
+  .match .tooltip {
+    background-color: black;
+    color: #fff;
+  }
+}
+
+</style>
+</head>
+<body>
+<table width ="100%" cellspacing="0" border="0">
+    <tr><td class="title">Mutation test report</td></tr>
+     <tr><td><hr class="ruler"/></td></tr>
+
+     <tr>
+     <td width="100%">
+     <table width="100%" cellpadding="1" border="0">
+     <tbody><tr>
+     <td class="ItemLabel" width="10%">Current display:</td>
+     <td class="ItemText" width="35%">lib/vistamodelo/reportes\avistamiento_vm.dart - <a href="../../../mutation-test-report.html">back to top</a></td>
+     <td width="10%"></td>
+     <td class="MiddleHeader" width="15%">Detected</td>
+     <td class="MiddleHeader" width="15%">Total</td>
+     <td class="MiddleHeader" width="15%">Percentage</td>
+     </tr>
+
+     <tr>
+     <td class="ItemLabel" width="10%">Date:</td>
+     <td class="ItemText" width="35%">2025-12-04 11:54:31.484277</td>
+     <td class="ItemLabel" width="10%">Mutations:</td>
+     <td class="ItemReport" width="15%">22</td>
+     <td class="ItemReport" width="15%">64</td>
+     <td class="ItemReportLow" width="15%">34.4 %</td>
+     </tr>
+     
+     <tr>
+     <td class="ItemLabel" width="10%">Builtin rules:</td>
+     <td class="ItemText" width="35%">true</td>
+     <td class="ItemLabel" width="10%">Blocked:</td>
+     <td class="ItemReport" width="15%">0</td>
+     <td class="ItemReport" width="15%">64</td>
+     <td class="ItemReportHigh" width="15%">0.0 %</td>
+     </tr>
+     </tbody>
+     </table>
+     </td>
+     </tr>
+     
+
+     
+     <tr><td><hr class="ruler"/></td></tr>
+</table>
+
+<pre class="fileHeader">          Source code</pre>
+<pre class="fileContents">
+<a name="1"><span class="lineNumber">       1 </span>import 'dart:io';</a>
+<a name="2"><span class="lineNumber">       2 </span>import 'dart:math';</a>
+<a name="3"><span class="lineNumber">       3 </span>import 'package:flutter/foundation.dart';</a>
+<a name="4"><span class="lineNumber">       4 </span>import 'package:cloud_firestore/cloud_firestore.dart';</a>
+<a name="5"><span class="lineNumber">       5 </span>import 'package:firebase_auth/firebase_auth.dart';</a>
+<a name="6"><span class="lineNumber">       6 </span>import 'package:firebase_storage/firebase_storage.dart';</a>
+<a name="7"><span class="lineNumber">       7 </span>import 'package:flutter_image_compress/flutter_image_compress.dart';</a>
+<a name="8"><span class="lineNumber">       8 </span>import 'package:http/http.dart' as http;</a>
+<a name="9"><span class="lineNumber">       9 </span>import 'package:path_provider/path_provider.dart';</a>
+<a name="10"><span class="lineNumber">      10 </span>import 'package:sos_mascotas/servicios/notificacion_servicio.dart';</a>
+<a name="11"><span class="lineNumber">      11 </span>import 'package:sos_mascotas/servicios/servicio_tflite.dart';</a>
+<a name="12"><span class="lineNumber">      12 </span>import '../../modelo/avistamiento.dart';</a>
+<a name="13"><span class="lineNumber">      13 </span></a>
+<a name="14"><span class="lineNumber">      14 </span>/// Define los posibles estados de la interfaz de usuario durante operaciones asíncronas.</a>
+<a name="15"><span class="lineNumber">      15 </span>enum EstadoCarga { inicial, cargando, exito, error }</a>
+<a name="16"><span class="lineNumber">      16 </span></a>
+<a name="17"><span class="lineNumber">      17 </span>/// 🧱 Wrapper para aislar servicios externos y plugins.</a>
+<a name="18"><span class="lineNumber">      18 </span>///</a>
+<a name="19"><span class="lineNumber">      19 </span>/// Su propósito principal es permitir el [Mocking] de dependencias complejas</a>
+<a name="20"><span class="lineNumber">      20 </span>/// (como compresión de imágenes, TFLite o Notificaciones) durante las pruebas unitarias.</a>
+<a name="21"><span class="lineNumber">      21 </span>class AvistamientoServices {</a>
+<a name="22"><span class="lineNumber">      22 </span>  /// Obtiene el directorio temporal del dispositivo.</a>
+<a name="23"><span class="lineNumber">      23 </span>  Future&lt;Directory&gt; getTempDir() async =&gt; await getTemporaryDirectory();</a>
+<a name="24"><span class="lineNumber">      24 </span></a>
+<a name="25"><span class="lineNumber">      25 </span>  /// Comprime una imagen ubicada en [path] y la guarda en [targetPath].</a>
+<a name="26"><span class="lineNumber">      26 </span>  ///</a>
+<a name="27"><span class="lineNumber">      27 </span>  /// Retorna un [File] con la imagen comprimida o `null` si falla.</a>
+<a name="28"><span class="lineNumber">      28 </span>  Future&lt;File?&gt; compress(String path, String targetPath) async {</a>
+<a name="29"><span class="lineNumber">      29 </span>    final result = await FlutterImageCompress.compressAndGetFile(</a>
+<a name="30"><span class="lineNumber">      30 </span>      path,</a>
+<a name="31"><span class="lineNumber">      31 </span>      targetPath,</a>
+<a name="32"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">      32 </span>      quality: 70,</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+       quality:<span class="changedTokens"> -70</span>,</span></td><td class="match">RegExp: pattern=([\s=\(])([1-9\.]+[0-9]+|0\.0*[1-9]) flags=m<span class="tooltip">Id: builtin.number.negative</span></td></tr></table>
+
+</div></a><a name="33"><span class="lineNumber">      33 </span>    );</a>
+<a name="34"><button class="collapsible hit"><pre class="fileContents"><span class="lineNumber">      34 </span>    return result != null ? File(result.path) : null;</pre></button>
+<div class="content">
+<b>Detected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+     return result <span class="changedTokens">==</span> null ? File(result.path) : null;</span></td><td class="match">!=<span class="tooltip">Id: builtin.op.neq</span></td></tr></table>
+
+</div></a><a name="35"><span class="lineNumber">      35 </span>  }</a>
+<a name="36"><span class="lineNumber">      36 </span></a>
+<a name="37"><span class="lineNumber">      37 </span>  /// Ejecuta el modelo de IA para detectar qué animal hay en el [file].</a>
+<a name="38"><span class="lineNumber">      38 </span>  Future&lt;Map&lt;dynamic, dynamic&gt;&gt; detectarAnimal(File file) async {</a>
+<a name="39"><span class="lineNumber">      39 </span>    return await ServicioTFLite.detectarAnimal(file);</a>
+<a name="40"><span class="lineNumber">      40 </span>  }</a>
+<a name="41"><span class="lineNumber">      41 </span></a>
+<a name="42"><span class="lineNumber">      42 </span>  /// Calcula el porcentaje de similitud visual entre dos imágenes [f1] y [f2].</a>
+<a name="43"><span class="lineNumber">      43 </span>  Future&lt;double&gt; compararImagenes(File f1, File f2) async {</a>
+<a name="44"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">      44 </span>    return await ServicioTFLite.compararImagenes(f1, f2);</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+     return await<span class="changedTokens"> ServicioTFLite.compararImagenes( f2,f1);</span></span></td><td class="match">RegExp: pattern=([\s][a-zA-Z]+?[^(;\s{}]*?)\s*\(([^,:;{}(]+?),([^,:;{}(]+?)\)\s*; flags=m<span class="tooltip">Id: builtin.function.arg2</span></td></tr></table>
+
+</div></a><a name="45"><span class="lineNumber">      45 </span>  }</a>
+<a name="46"><span class="lineNumber">      46 </span></a>
+<a name="47"><span class="lineNumber">      47 </span>  /// Envía una notificación Push a través del servicio de notificaciones.</a>
+<a name="48"><span class="lineNumber">      48 </span>  Future&lt;void&gt; enviarPush({</a>
+<a name="49"><span class="lineNumber">      49 </span>    required String titulo,</a>
+<a name="50"><span class="lineNumber">      50 </span>    required String cuerpo,</a>
+<a name="51"><span class="lineNumber">      51 </span>  }) async {</a>
+<a name="52"><span class="lineNumber">      52 </span>    await NotificacionServicio.enviarPush(titulo: titulo, cuerpo: cuerpo);</a>
+<a name="53"><span class="lineNumber">      53 </span>  }</a>
+<a name="54"><span class="lineNumber">      54 </span>}</a>
+<a name="55"><span class="lineNumber">      55 </span></a>
+<a name="56"><span class="lineNumber">      56 </span>/// ViewModel encargado de la lógica de negocio para registrar avistamientos.</a>
+<a name="57"><span class="lineNumber">      57 </span>///</a>
+<a name="58"><span class="lineNumber">      58 </span>/// Gestiona el estado de la UI, la subida de imágenes a Firebase Storage,</a>
+<a name="59"><span class="lineNumber">      59 </span>/// el guardado en Firestore y la ejecución del algoritmo de coincidencia de mascotas.</a>
+<a name="60"><span class="lineNumber">      60 </span>class AvistamientoVM extends ChangeNotifier {</a>
+<a name="61"><span class="lineNumber">      61 </span>  Avistamiento avistamiento = Avistamiento();</a>
+<a name="62"><span class="lineNumber">      62 </span>  EstadoCarga _estado = EstadoCarga.inicial;</a>
+<a name="63"><span class="lineNumber">      63 </span>  String? _mensajeUsuario;</a>
+<a name="64"><span class="lineNumber">      64 </span></a>
+<a name="65"><span class="lineNumber">      65 </span>  EstadoCarga get estado =&gt; _estado;</a>
+<a name="66"><span class="lineNumber">      66 </span>  String? get mensajeUsuario =&gt; _mensajeUsuario;</a>
+<a name="67"><button class="collapsible hit"><pre class="fileContents"><span class="lineNumber">      67 </span>  bool get cargando =&gt; _estado == EstadoCarga.cargando;</pre></button>
+<div class="content">
+<b>Detected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+   bool get cargando =&gt; _estado <span class="changedTokens">!=</span> EstadoCarga.cargando;</span></td><td class="match">==<span class="tooltip">Id: builtin.op.eq</span></td></tr></table>
+
+</div></a><a name="68"><span class="lineNumber">      68 </span></a>
+<a name="69"><span class="lineNumber">      69 </span>  // 💉 Dependencias Inyectables</a>
+<a name="70"><span class="lineNumber">      70 </span>  final FirebaseAuth _auth;</a>
+<a name="71"><span class="lineNumber">      71 </span>  final FirebaseFirestore _firestore;</a>
+<a name="72"><span class="lineNumber">      72 </span>  final FirebaseStorage _storage;</a>
+<a name="73"><span class="lineNumber">      73 </span>  final http.Client _httpClient;</a>
+<a name="74"><span class="lineNumber">      74 </span>  final AvistamientoServices _services;</a>
+<a name="75"><span class="lineNumber">      75 </span></a>
+<a name="76"><span class="lineNumber">      76 </span>  /// Constructor que permite Inyección de Dependencias.</a>
+<a name="77"><span class="lineNumber">      77 </span>  ///</a>
+<a name="78"><span class="lineNumber">      78 </span>  /// Si no se proveen dependencias (producción), utiliza las instancias por defecto</a>
+<a name="79"><span class="lineNumber">      79 </span>  /// de Firebase y servicios reales.</a>
+<a name="80"><span class="lineNumber">      80 </span>  AvistamientoVM({</a>
+<a name="81"><span class="lineNumber">      81 </span>    FirebaseAuth? auth,</a>
+<a name="82"><span class="lineNumber">      82 </span>    FirebaseFirestore? firestore,</a>
+<a name="83"><span class="lineNumber">      83 </span>    FirebaseStorage? storage,</a>
+<a name="84"><span class="lineNumber">      84 </span>    http.Client? httpClient,</a>
+<a name="85"><span class="lineNumber">      85 </span>    AvistamientoServices? services,</a>
+<a name="86"><span class="lineNumber">      86 </span>  }) : _auth = auth ?? FirebaseAuth.instance,</a>
+<a name="87"><span class="lineNumber">      87 </span>       _firestore = firestore ?? FirebaseFirestore.instance,</a>
+<a name="88"><span class="lineNumber">      88 </span>       _storage = storage ?? FirebaseStorage.instance,</a>
+<a name="89"><span class="lineNumber">      89 </span>       _httpClient = httpClient ?? http.Client(),</a>
+<a name="90"><span class="lineNumber">      90 </span>       _services = services ?? AvistamientoServices();</a>
+<a name="91"><span class="lineNumber">      91 </span></a>
+<a name="92"><span class="lineNumber">      92 </span>  void setDireccion(String v) =&gt; avistamiento.direccion = v;</a>
+<a name="93"><span class="lineNumber">      93 </span>  void setDescripcion(String v) =&gt; avistamiento.descripcion = v;</a>
+<a name="94"><span class="lineNumber">      94 </span></a>
+<a name="95"><span class="lineNumber">      95 </span>  void limpiarMensaje() {</a>
+<a name="96"><span class="lineNumber">      96 </span>    _mensajeUsuario = null;</a>
+<a name="97"><span class="lineNumber">      97 </span>  }</a>
+<a name="98"><span class="lineNumber">      98 </span></a>
+<a name="99"><span class="lineNumber">      99 </span>  /// Actualiza los datos de geolocalización en el modelo local.</a>
+<a name="100"><span class="lineNumber">     100 </span>  void actualizarUbicacion({</a>
+<a name="101"><span class="lineNumber">     101 </span>    required String direccion,</a>
+<a name="102"><span class="lineNumber">     102 </span>    required String distrito,</a>
+<a name="103"><span class="lineNumber">     103 </span>    required double latitud,</a>
+<a name="104"><span class="lineNumber">     104 </span>    required double longitud,</a>
+<a name="105"><span class="lineNumber">     105 </span>  }) {</a>
+<a name="106"><span class="lineNumber">     106 </span>    avistamiento.direccion = direccion;</a>
+<a name="107"><span class="lineNumber">     107 </span>    avistamiento.distrito = distrito;</a>
+<a name="108"><span class="lineNumber">     108 </span>    avistamiento.latitud = latitud;</a>
+<a name="109"><span class="lineNumber">     109 </span>    avistamiento.longitud = longitud;</a>
+<a name="110"><span class="lineNumber">     110 </span>    notifyListeners();</a>
+<a name="111"><span class="lineNumber">     111 </span>  }</a>
+<a name="112"><span class="lineNumber">     112 </span></a>
+<a name="113"><span class="lineNumber">     113 </span>  // ----------------------------------------------------------------------</a>
+<a name="114"><span class="lineNumber">     114 </span>  // 📸 Lógica de Imágenes</a>
+<a name="115"><span class="lineNumber">     115 </span>  // ----------------------------------------------------------------------</a>
+<a name="116"><span class="lineNumber">     116 </span></a>
+<a name="117"><span class="lineNumber">     117 </span>  /// Comprime la imagen seleccionada para optimizar el almacenamiento.</a>
+<a name="118"><span class="lineNumber">     118 </span>  Future&lt;File&gt; _comprimirImagen(File archivo) async {</a>
+<a name="119"><span class="lineNumber">     119 </span>    final dir = await _services.getTempDir();</a>
+<a name="120"><span class="lineNumber">     120 </span>    final targetPath =</a>
+<a name="121"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     121 </span>        "${dir.absolute.path}/${DateTime.now().millisecondsSinceEpoch}.jpg";</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+         "${dir.absolute.path}<span class="changedTokens">*$</span>{DateTime.now().millisecondsSinceEpoch}.jpg";</span></td><td class="match">RegExp: pattern=/([^=]) flags=m<span class="tooltip">Id: builtin.arith.div</span></td></tr></table>
+
+</div></a><a name="122"><span class="lineNumber">     122 </span></a>
+<a name="123"><span class="lineNumber">     123 </span>    final result = await _services.compress(archivo.absolute.path, targetPath);</a>
+<a name="124"><span class="lineNumber">     124 </span>    return result ?? archivo;</a>
+<a name="125"><span class="lineNumber">     125 </span>  }</a>
+<a name="126"><span class="lineNumber">     126 </span></a>
+<a name="127"><span class="lineNumber">     127 </span>  /// Procesa, valida y sube la foto del avistamiento.</a>
+<a name="128"><span class="lineNumber">     128 </span>  ///</a>
+<a name="129"><span class="lineNumber">     129 </span>  /// Pasos:</a>
+<a name="130"><span class="lineNumber">     130 </span>  /// 1. Comprime la imagen.</a>
+<a name="131"><span class="lineNumber">     131 </span>  /// 2. **Validación IA:** Verifica si la imagen contiene una mascota con confianza &gt; 60%.</a>
+<a name="132"><span class="lineNumber">     132 </span>  /// 3. Si es válida, la sube a Firebase Storage.</a>
+<a name="133"><span class="lineNumber">     133 </span>  ///</a>
+<a name="134"><span class="lineNumber">     134 </span>  /// Retorna la URL de descarga o `null` si la validación falla.</a>
+<a name="135"><span class="lineNumber">     135 </span>  Future&lt;String?&gt; subirFoto(File archivo) async {</a>
+<a name="136"><span class="lineNumber">     136 </span>    try {</a>
+<a name="137"><span class="lineNumber">     137 </span>      _estado = EstadoCarga.cargando;</a>
+<a name="138"><span class="lineNumber">     138 </span>      notifyListeners();</a>
+<a name="139"><span class="lineNumber">     139 </span></a>
+<a name="140"><span class="lineNumber">     140 </span>      final comprimido = await _comprimirImagen(archivo);</a>
+<a name="141"><span class="lineNumber">     141 </span></a>
+<a name="142"><span class="lineNumber">     142 </span>      // 1. Analizar con IA (Wrapper)</a>
+<a name="143"><span class="lineNumber">     143 </span>      final resultado = await _services.detectarAnimal(comprimido);</a>
+<a name="144"><span class="lineNumber">     144 </span>      final tipo = resultado["etiqueta"];</a>
+<a name="145"><span class="lineNumber">     145 </span>      final confianzaVal = resultado["confianza"];</a>
+<a name="146"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     146 </span>      final confianzaStr = (confianzaVal * 100).toStringAsFixed(2);</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+       final confianzaStr = (confianzaVal *<span class="changedTokens"> -100</span>).toStringAsFixed(2);</span></td><td class="match">RegExp: pattern=([\s=\(])([1-9\.]+[0-9]+|0\.0*[1-9]) flags=m<span class="tooltip">Id: builtin.number.negative</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">2 :</td><td class="mutationText" width="87%"><span class="addedLine">+       final confianzaStr = (confianzaVal <span class="changedTokens">/ </span>100).toStringAsFixed(2);</span></td><td class="match">RegExp: pattern=\*([^=]) flags=m<span class="tooltip">Id: builtin.arith.mul</span></td></tr></table>
+
+</div></a><a name="147"><span class="lineNumber">     147 </span></a>
+<a name="148"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     148 </span>      if (tipo == "otro" || confianzaVal &lt; 0.6) {</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+       if (tipo == "otro" <span class="changedTokens">&amp;&amp;</span> confianzaVal &lt; 0.6) {</span></td><td class="match">||<span class="tooltip">Id: builtin.or</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">2 :</td><td class="mutationText" width="87%"><span class="addedLine">+       if (tipo == "otro" || confianzaVal &lt;<span class="changedTokens"> -0.6</span>) {</span></td><td class="match">RegExp: pattern=([\s=\(])([1-9\.]+[0-9]+|0\.0*[1-9]) flags=m<span class="tooltip">Id: builtin.number.negative</span></td></tr></table>
+<b>Detected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+       if (tipo <span class="changedTokens">!=</span> "otro" || confianzaVal &lt; 0.6) {</span></td><td class="match">==<span class="tooltip">Id: builtin.op.eq</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">2 :</td><td class="mutationText" width="87%"><span class="addedLine">+      <span class="changedTokens"> if (!(tipo == "otro" || confianzaVal &lt; 0.6)) {</span></span></td><td class="match">RegExp: pattern=[\s]if[\s]*\((.*?)\)[\s]*{ flags=ms<span class="tooltip">Id: builtin.if</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">3 :</td><td class="mutationText" width="87%"><span class="addedLine">+       if <span class="changedTokens">(!(tipo == "otro" )|| confianzaVal &lt; 0.6)</span> {</span></td><td class="match">RegExp: pattern=\(([^|(]*?)\|\|([^()|]*?)\) flags=m<span class="tooltip">Id: builtin.logical.or_chain2</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">4 :</td><td class="mutationText" width="87%"><span class="addedLine">+       if <span class="changedTokens">(tipo == "otro" ||!( confianzaVal &lt; 0.6))</span> {</span></td><td class="match">RegExp: pattern=\(([^|(]*?)\|\|([^()|]*?)\) flags=m<span class="tooltip">Id: builtin.logical.or_chain2</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">5 :</td><td class="mutationText" width="87%"><span class="addedLine">+       <span class="changedTokens">if (!(tipo == "otro" )||</span> confianzaVal &lt; 0.6) {</span></td><td class="match">RegExp: pattern=if\s*\(([^|&\)]*?)([|&][|&]) flags=m<span class="tooltip">Id: builtin.if.start</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">6 :</td><td class="mutationText" width="87%"><span class="addedLine">+       if (tipo == "otro" <span class="changedTokens">||!( confianzaVal &lt; 0.6))</span> {</span></td><td class="match">RegExp: pattern=([|&][|&])([^|&]*?)\) flags=m<span class="tooltip">Id: builtin.if.end</span></td></tr></table>
+
+</div></a><a name="149"><span class="lineNumber">     149 </span>        _estado = EstadoCarga.error;</a>
+<a name="150"><span class="lineNumber">     150 </span>        _mensajeUsuario =</a>
+<a name="151"><span class="lineNumber">     151 </span>            "⚠️ No se detectó una mascota clara ($confianzaStr%). Intente otra foto.";</a>
+<a name="152"><span class="lineNumber">     152 </span>        notifyListeners();</a>
+<a name="153"><span class="lineNumber">     153 </span>        return null;</a>
+<a name="154"><span class="lineNumber">     154 </span>      }</a>
+<a name="155"><span class="lineNumber">     155 </span></a>
+<a name="156"><span class="lineNumber">     156 </span>      _mensajeUsuario = "🐾 Se detectó un $tipo ($confianzaStr%)";</a>
+<a name="157"><span class="lineNumber">     157 </span>      notifyListeners();</a>
+<a name="158"><span class="lineNumber">     158 </span></a>
+<a name="159"><span class="lineNumber">     159 </span>      // 2. Subir a Firebase Storage</a>
+<a name="160"><span class="lineNumber">     160 </span>      final uid = _auth.currentUser!.uid;</a>
+<a name="161"><span class="lineNumber">     161 </span>      final ref = _storage</a>
+<a name="162"><span class="lineNumber">     162 </span>          .ref()</a>
+<a name="163"><span class="lineNumber">     163 </span>          .child("avistamientos")</a>
+<a name="164"><span class="lineNumber">     164 </span>          .child(uid)</a>
+<a name="165"><button class="collapsible hit"><pre class="fileContents"><span class="lineNumber">     165 </span>          .child("${DateTime.now().millisecondsSinceEpoch}.jpg");</pre></button>
+<div class="content">
+<b>Detected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+           .child("$<span class="changedTokens">{</span></span></td><td class="match">RegExp: pattern=([{]\s*)([^\(;=\s}]+\([^;]+\)\s*;) flags=m<span class="tooltip">Id: builtin.function.removeVoidCall1</span></td></tr></table>
+
+</div></a><a name="166"><span class="lineNumber">     166 </span></a>
+<a name="167"><span class="lineNumber">     167 </span>      await ref.putFile(comprimido);</a>
+<a name="168"><span class="lineNumber">     168 </span>      final url = await ref.getDownloadURL();</a>
+<a name="169"><span class="lineNumber">     169 </span></a>
+<a name="170"><span class="lineNumber">     170 </span>      _estado = EstadoCarga.inicial;</a>
+<a name="171"><span class="lineNumber">     171 </span>      notifyListeners();</a>
+<a name="172"><span class="lineNumber">     172 </span>      return url;</a>
+<a name="173"><span class="lineNumber">     173 </span>    } catch (e) {</a>
+<a name="174"><span class="lineNumber">     174 </span>      _estado = EstadoCarga.error;</a>
+<a name="175"><span class="lineNumber">     175 </span>      _mensajeUsuario = e.toString().replaceAll("Exception: ", "");</a>
+<a name="176"><span class="lineNumber">     176 </span>      notifyListeners();</a>
+<a name="177"><span class="lineNumber">     177 </span>      return null;</a>
+<a name="178"><span class="lineNumber">     178 </span>    }</a>
+<a name="179"><span class="lineNumber">     179 </span>  }</a>
+<a name="180"><span class="lineNumber">     180 </span></a>
+<a name="181"><span class="lineNumber">     181 </span>  // ----------------------------------------------------------------------</a>
+<a name="182"><span class="lineNumber">     182 </span>  // 💾 Lógica de Guardado</a>
+<a name="183"><span class="lineNumber">     183 </span>  // ----------------------------------------------------------------------</a>
+<a name="184"><span class="lineNumber">     184 </span></a>
+<a name="185"><span class="lineNumber">     185 </span>  /// Guarda el avistamiento en Firestore y ejecuta el algoritmo de coincidencia.</a>
+<a name="186"><span class="lineNumber">     186 </span>  ///</a>
+<a name="187"><span class="lineNumber">     187 </span>  /// 1. Valida campos locales (foto, ubicación, descripción).</a>
+<a name="188"><span class="lineNumber">     188 </span>  /// 2. Guarda el documento en la colección `avistamientos`.</a>
+<a name="189"><span class="lineNumber">     189 </span>  /// 3. Busca coincidencias automáticas con reportes de mascotas perdidas.</a>
+<a name="190"><span class="lineNumber">     190 </span>  /// 4. Envía notificación Push global.</a>
+<a name="191"><span class="lineNumber">     191 </span>  ///</a>
+<a name="192"><span class="lineNumber">     192 </span>  /// Retorna `true` si el proceso fue exitoso.</a>
+<a name="193"><span class="lineNumber">     193 </span>  Future&lt;bool&gt; guardarAvistamiento() async {</a>
+<a name="194"><span class="lineNumber">     194 </span>    final errorValidacion = _validarCamposLocal();</a>
+<a name="195"><button class="collapsible hit"><pre class="fileContents"><span class="lineNumber">     195 </span>    if (errorValidacion != null) {</pre></button>
+<div class="content">
+<b>Detected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+     if (errorValidacion <span class="changedTokens">==</span> null) {</span></td><td class="match">!=<span class="tooltip">Id: builtin.op.neq</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">2 :</td><td class="mutationText" width="87%"><span class="addedLine">+    <span class="changedTokens"> if (!(errorValidacion != null)) {</span></span></td><td class="match">RegExp: pattern=[\s]if[\s]*\((.*?)\)[\s]*{ flags=ms<span class="tooltip">Id: builtin.if</span></td></tr></table>
+
+</div></a><a name="196"><span class="lineNumber">     196 </span>      _mensajeUsuario = errorValidacion;</a>
+<a name="197"><span class="lineNumber">     197 </span>      _estado = EstadoCarga.error;</a>
+<a name="198"><span class="lineNumber">     198 </span>      notifyListeners();</a>
+<a name="199"><span class="lineNumber">     199 </span>      return false;</a>
+<a name="200"><span class="lineNumber">     200 </span>    }</a>
+<a name="201"><span class="lineNumber">     201 </span></a>
+<a name="202"><span class="lineNumber">     202 </span>    try {</a>
+<a name="203"><span class="lineNumber">     203 </span>      _estado = EstadoCarga.cargando;</a>
+<a name="204"><span class="lineNumber">     204 </span>      notifyListeners();</a>
+<a name="205"><span class="lineNumber">     205 </span></a>
+<a name="206"><span class="lineNumber">     206 </span>      final uid = _auth.currentUser!.uid;</a>
+<a name="207"><span class="lineNumber">     207 </span>      final docRef = _firestore.collection("avistamientos").doc();</a>
+<a name="208"><span class="lineNumber">     208 </span></a>
+<a name="209"><span class="lineNumber">     209 </span>      avistamiento.id = docRef.id;</a>
+<a name="210"><span class="lineNumber">     210 </span>      avistamiento.usuarioId = uid;</a>
+<a name="211"><span class="lineNumber">     211 </span>      avistamiento.direccion = avistamiento.direccion.trim();</a>
+<a name="212"><span class="lineNumber">     212 </span>      avistamiento.distrito = avistamiento.distrito.trim();</a>
+<a name="213"><span class="lineNumber">     213 </span></a>
+<a name="214"><span class="lineNumber">     214 </span>      await docRef.set(</a>
+<a name="215"><span class="lineNumber">     215 </span>        avistamiento.toMap()</a>
+<a name="216"><span class="lineNumber">     216 </span>          ..addAll({"fechaRegistro": FieldValue.serverTimestamp()}),</a>
+<a name="217"><span class="lineNumber">     217 </span>      );</a>
+<a name="218"><span class="lineNumber">     218 </span></a>
+<a name="219"><span class="lineNumber">     219 </span>      // 2. Lógica de Negocio: Buscar coincidencia</a>
+<a name="220"><span class="lineNumber">     220 </span>      await _buscarCoincidenciaConReportes(avistamiento);</a>
+<a name="221"><span class="lineNumber">     221 </span></a>
+<a name="222"><span class="lineNumber">     222 </span>      // 3. Notificación (Wrapper)</a>
+<a name="223"><span class="lineNumber">     223 </span>      await _services.enviarPush(</a>
+<a name="224"><span class="lineNumber">     224 </span>        titulo: "Nuevo avistamiento 👀",</a>
+<a name="225"><span class="lineNumber">     225 </span>        cuerpo: "Se ha registrado un nuevo avistamiento de mascota.",</a>
+<a name="226"><span class="lineNumber">     226 </span>      );</a>
+<a name="227"><span class="lineNumber">     227 </span></a>
+<a name="228"><span class="lineNumber">     228 </span>      _mensajeUsuario = "✅ Avistamiento guardado correctamente.";</a>
+<a name="229"><span class="lineNumber">     229 </span>      _estado = EstadoCarga.exito;</a>
+<a name="230"><span class="lineNumber">     230 </span>      notifyListeners();</a>
+<a name="231"><span class="lineNumber">     231 </span>      return true;</a>
+<a name="232"><span class="lineNumber">     232 </span>    } catch (e) {</a>
+<a name="233"><span class="lineNumber">     233 </span>      _mensajeUsuario = "❌ Error al guardar: $e";</a>
+<a name="234"><span class="lineNumber">     234 </span>      _estado = EstadoCarga.error;</a>
+<a name="235"><span class="lineNumber">     235 </span>      notifyListeners();</a>
+<a name="236"><span class="lineNumber">     236 </span>      return false;</a>
+<a name="237"><span class="lineNumber">     237 </span>    }</a>
+<a name="238"><span class="lineNumber">     238 </span>  }</a>
+<a name="239"><span class="lineNumber">     239 </span></a>
+<a name="240"><span class="lineNumber">     240 </span>  String? _validarCamposLocal() {</a>
+<a name="241"><span class="lineNumber">     241 </span>    final desc = avistamiento.descripcion.trim();</a>
+<a name="242"><span class="lineNumber">     242 </span>    final foto = avistamiento.foto.trim();</a>
+<a name="243"><span class="lineNumber">     243 </span></a>
+<a name="244"><button class="collapsible hit"><pre class="fileContents"><span class="lineNumber">     244 </span>    if (foto.isEmpty) return 'Debes subir una foto antes de guardar.';</pre></button>
+<div class="content">
+<b>Detected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+    <span class="changedTokens"> if (!(foto.isEmpty) return 'Debes subir una foto antes de guardar.';
+    if (!_esUbicacionValida(avistamiento.latitud, avistamiento.longitud))) {</span></span></td><td class="match">RegExp: pattern=[\s]if[\s]*\((.*?)\)[\s]*{ flags=ms<span class="tooltip">Id: builtin.if</span></td></tr></table>
+
+</div></a><a name="245"><span class="lineNumber">     245 </span>    if (!_esUbicacionValida(avistamiento.latitud, avistamiento.longitud)) {</a>
+<a name="246"><span class="lineNumber">     246 </span>      return 'Debe seleccionar una ubicación válida en el mapa.';</a>
+<a name="247"><span class="lineNumber">     247 </span>    }</a>
+<a name="248"><button class="collapsible hit"><pre class="fileContents"><span class="lineNumber">     248 </span>    if (desc.isEmpty) return 'La descripción no puede estar vacía.';</pre></button>
+<div class="content">
+<b>Detected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+    <span class="changedTokens"> if (!(desc.isEmpty) return 'La descripción no puede estar vacía.';
+    return null;
+  }
+
+  bool _esUbicacionValida(double? lat, double? lon) =&gt;
+      lat != null &amp;&amp; lon != null &amp;&amp; (lat != 0 || lon != 0);
+
+  /// Algoritmo de búsqueda de coincidencias.
+  ///
+  /// Compara el avistamiento actual [av] contra todos los reportes "perdidos" en la BD.
+  /// Criterios de coincidencia:
+  /// 1. **Distancia:** Menor a 9 km (usando fórmula de Haversine).
+  /// 2. **Similitud Visual:** Mayor o igual al 50% (usando comparación de embeddings).
+  ///
+  /// Si hay coincidencia, actualiza el avistamiento y notifica al dueño del reporte.
+  Future&lt;void&gt; _buscarCoincidenciaConReportes(Avistamiento av) async {
+    try {
+      final reportes = await _firestore
+          .collection("reportes_mascotas")
+          .where("estado", isEqualTo: "perdido")
+          .get();
+
+      for (var doc in reportes.docs)) {</span></span></td><td class="match">RegExp: pattern=[\s]if[\s]*\((.*?)\)[\s]*{ flags=ms<span class="tooltip">Id: builtin.if</span></td></tr></table>
+
+</div></a><a name="249"><span class="lineNumber">     249 </span>    return null;</a>
+<a name="250"><span class="lineNumber">     250 </span>  }</a>
+<a name="251"><span class="lineNumber">     251 </span></a>
+<a name="252"><span class="lineNumber">     252 </span>  bool _esUbicacionValida(double? lat, double? lon) =&gt;</a>
+<a name="253"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     253 </span>      lat != null &amp;&amp; lon != null &amp;&amp; (lat != 0 || lon != 0);</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+       lat != null &amp;&amp; lon != null &amp;&amp; (lat <span class="changedTokens">==</span> 0 || lon != 0);</span></td><td class="match">!=<span class="tooltip">Id: builtin.op.neq</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">2 :</td><td class="mutationText" width="87%"><span class="addedLine">+       lat != null &amp;&amp; lon != null &amp;&amp; (lat != 0 || lon <span class="changedTokens">==</span> 0);</span></td><td class="match">!=<span class="tooltip">Id: builtin.op.neq</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">3 :</td><td class="mutationText" width="87%"><span class="addedLine">+       lat != null &amp;&amp; lon != null <span class="changedTokens">||</span> (lat != 0 || lon != 0);</span></td><td class="match">&&<span class="tooltip">Id: builtin.and</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">4 :</td><td class="mutationText" width="87%"><span class="addedLine">+       lat != null &amp;&amp; lon != null &amp;&amp; <span class="changedTokens">(!(lat != 0 )|| lon != 0)</span>;</span></td><td class="match">RegExp: pattern=\(([^|(]*?)\|\|([^()|]*?)\) flags=m<span class="tooltip">Id: builtin.logical.or_chain2</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">5 :</td><td class="mutationText" width="87%"><span class="addedLine">+       lat != null &amp;&amp; lon != null &amp;&amp; <span class="changedTokens">(lat != 0 ||!( lon != 0))</span>;</span></td><td class="match">RegExp: pattern=\(([^|(]*?)\|\|([^()|]*?)\) flags=m<span class="tooltip">Id: builtin.logical.or_chain2</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">6 :</td><td class="mutationText" width="87%"><span class="addedLine">+       lat != null &amp;&amp; lon != null &amp;&amp; (lat != 0 <span class="changedTokens">||!( lon != 0))</span>;</span></td><td class="match">RegExp: pattern=([|&][|&])([^|&]*?)\) flags=m<span class="tooltip">Id: builtin.if.end</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">7 :</td><td class="mutationText" width="87%"><span class="addedLine">+       lat != null <span class="changedTokens">||</span> lon != null &amp;&amp; (lat != 0 || lon != 0);</span></td><td class="match">&&<span class="tooltip">Id: builtin.and</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">8 :</td><td class="mutationText" width="87%"><span class="addedLine">+       lat != null &amp;&amp; lon != null &amp;&amp; (lat != 0 <span class="changedTokens">&amp;&amp;</span> lon != 0);</span></td><td class="match">||<span class="tooltip">Id: builtin.or</span></td></tr></table>
+<b>Detected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+       lat <span class="changedTokens">==</span> null &amp;&amp; lon != null &amp;&amp; (lat != 0 || lon != 0);</span></td><td class="match">!=<span class="tooltip">Id: builtin.op.neq</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">2 :</td><td class="mutationText" width="87%"><span class="addedLine">+       lat != null &amp;&amp; lon <span class="changedTokens">==</span> null &amp;&amp; (lat != 0 || lon != 0);</span></td><td class="match">!=<span class="tooltip">Id: builtin.op.neq</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">3 :</td><td class="mutationText" width="87%"><span class="addedLine">+       lat != null &amp;<span class="changedTokens">&amp;!( lon != null )&amp;</span>&amp; (lat != 0 || lon != 0);</span></td><td class="match">RegExp: pattern=&([^&()]+?)& flags=ms<span class="tooltip">Id: builtin.logical.and_chain</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">4 :</td><td class="mutationText" width="87%"><span class="addedLine">+       lat != null &amp;&amp; lon != null <span class="changedTokens">&amp;&amp;!(</span>lat != 0 || lon != 0);</span></td><td class="match">RegExp: pattern=([|&][|&])[\s]*?\( flags=ms<span class="tooltip">Id: builtin.logical.chain_not</span></td></tr></table>
+
+</div></a><a name="254"><span class="lineNumber">     254 </span></a>
+<a name="255"><span class="lineNumber">     255 </span>  /// Algoritmo de búsqueda de coincidencias.</a>
+<a name="256"><span class="lineNumber">     256 </span>  ///</a>
+<a name="257"><span class="lineNumber">     257 </span>  /// Compara el avistamiento actual [av] contra todos los reportes "perdidos" en la BD.</a>
+<a name="258"><span class="lineNumber">     258 </span>  /// Criterios de coincidencia:</a>
+<a name="259"><span class="lineNumber">     259 </span>  /// 1. **Distancia:** Menor a 9 km (usando fórmula de Haversine).</a>
+<a name="260"><span class="lineNumber">     260 </span>  /// 2. **Similitud Visual:** Mayor o igual al 50% (usando comparación de embeddings).</a>
+<a name="261"><span class="lineNumber">     261 </span>  ///</a>
+<a name="262"><span class="lineNumber">     262 </span>  /// Si hay coincidencia, actualiza el avistamiento y notifica al dueño del reporte.</a>
+<a name="263"><span class="lineNumber">     263 </span>  Future&lt;void&gt; _buscarCoincidenciaConReportes(Avistamiento av) async {</a>
+<a name="264"><span class="lineNumber">     264 </span>    try {</a>
+<a name="265"><span class="lineNumber">     265 </span>      final reportes = await _firestore</a>
+<a name="266"><span class="lineNumber">     266 </span>          .collection("reportes_mascotas")</a>
+<a name="267"><span class="lineNumber">     267 </span>          .where("estado", isEqualTo: "perdido")</a>
+<a name="268"><span class="lineNumber">     268 </span>          .get();</a>
+<a name="269"><span class="lineNumber">     269 </span></a>
+<a name="270"><span class="lineNumber">     270 </span>      for (var doc in reportes.docs) {</a>
+<a name="271"><span class="lineNumber">     271 </span>        final data = doc.data();</a>
+<a name="272"><span class="lineNumber">     272 </span>        final fotos = List&lt;String&gt;.from(data["fotos"] ?? []);</a>
+<a name="273"><button class="collapsible hit"><pre class="fileContents"><span class="lineNumber">     273 </span>        if (fotos.isEmpty) continue;</pre></button>
+<div class="content">
+<b>Detected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+        <span class="changedTokens"> if (!(fotos.isEmpty) continue;
+
+        final distancia = _calcularDistancia(
+          av.latitud ?? 0,
+          av.longitud ?? 0,
+          (data["latitud"] ?? 0).toDouble(),
+          (data["longitud"] ?? 0).toDouble(),
+        );
+
+        if (distancia &gt; 9.0) continue;
+
+        final similitud = await _compararImagenes(av.foto, fotos.first);
+
+        if (similitud &gt;= 0.5)) {</span></span></td><td class="match">RegExp: pattern=[\s]if[\s]*\((.*?)\)[\s]*{ flags=ms<span class="tooltip">Id: builtin.if</span></td></tr></table>
+
+</div></a><a name="274"><span class="lineNumber">     274 </span></a>
+<a name="275"><span class="lineNumber">     275 </span>        final distancia = _calcularDistancia(</a>
+<a name="276"><span class="lineNumber">     276 </span>          av.latitud ?? 0,</a>
+<a name="277"><span class="lineNumber">     277 </span>          av.longitud ?? 0,</a>
+<a name="278"><span class="lineNumber">     278 </span>          (data["latitud"] ?? 0).toDouble(),</a>
+<a name="279"><span class="lineNumber">     279 </span>          (data["longitud"] ?? 0).toDouble(),</a>
+<a name="280"><span class="lineNumber">     280 </span>        );</a>
+<a name="281"><span class="lineNumber">     281 </span></a>
+<a name="282"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     282 </span>        if (distancia &gt; 9.0) continue;</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+         if (distancia &gt;<span class="changedTokens"> -9.0</span>) continue;</span></td><td class="match">RegExp: pattern=([\s=\(])([1-9\.]+[0-9]+|0\.0*[1-9]) flags=m<span class="tooltip">Id: builtin.number.negative</span></td></tr></table>
+
+</div></a><a name="283"><span class="lineNumber">     283 </span></a>
+<a name="284"><span class="lineNumber">     284 </span>        final similitud = await _compararImagenes(av.foto, fotos.first);</a>
+<a name="285"><span class="lineNumber">     285 </span></a>
+<a name="286"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     286 </span>        if (similitud &gt;= 0.5) {</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+         if (similitud <span class="changedTokens">&gt;</span> 0.5) {</span></td><td class="match">>=<span class="tooltip">Id: builtin.op.geq</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">2 :</td><td class="mutationText" width="87%"><span class="addedLine">+         if (similitud &gt;=<span class="changedTokens"> -0.5</span>) {</span></td><td class="match">RegExp: pattern=([\s=\(])([1-9\.]+[0-9]+|0\.0*[1-9]) flags=m<span class="tooltip">Id: builtin.number.negative</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">3 :</td><td class="mutationText" width="87%"><span class="addedLine">+         if (similitud <span class="changedTokens">==</span> 0.5) {</span></td><td class="match">>=<span class="tooltip">Id: builtin.op.geq</span></td></tr></table>
+
+</div></a><a name="287"><span class="lineNumber">     287 </span>          await _firestore.collection("avistamientos").doc(av.id).update({</a>
+<a name="288"><span class="lineNumber">     288 </span>            "reporteId": doc.id,</a>
+<a name="289"><span class="lineNumber">     289 </span>          });</a>
+<a name="290"><span class="lineNumber">     290 </span></a>
+<a name="291"><span class="lineNumber">     291 </span>          final usuarioId = data["usuarioId"];</a>
+<a name="292"><span class="lineNumber">     292 </span>          await _notificarCoincidencia(usuarioId, av.id);</a>
+<a name="293"><span class="lineNumber">     293 </span>          break;</a>
+<a name="294"><span class="lineNumber">     294 </span>        }</a>
+<a name="295"><span class="lineNumber">     295 </span>      }</a>
+<a name="296"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     296 </span>    } catch (e) {</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+     } catch (e) <span class="changedTokens">{
+      </span></span></td><td class="match">RegExp: pattern=([{]\s*)([^\(;=\s}]+\([^;]+\)\s*;) flags=m<span class="tooltip">Id: builtin.function.removeVoidCall1</span></td></tr></table>
+
+</div></a><a name="297"><span class="lineNumber">     297 </span>      debugPrint("⚠️ Error silencioso: $e");</a>
+<a name="298"><span class="lineNumber">     298 </span>    }</a>
+<a name="299"><span class="lineNumber">     299 </span>  }</a>
+<a name="300"><span class="lineNumber">     300 </span></a>
+<a name="301"><span class="lineNumber">     301 </span>  /// Calcula la distancia en Kilómetros entre dos coordenadas usando la fórmula de Haversine.</a>
+<a name="302"><span class="lineNumber">     302 </span>  ///</a>
+<a name="303"><span class="lineNumber">     303 </span>  /// [lat1], [lon1]: Coordenadas del punto A.</a>
+<a name="304"><span class="lineNumber">     304 </span>  /// [lat2], [lon2]: Coordenadas del punto B.</a>
+<a name="305"><span class="lineNumber">     305 </span>  double _calcularDistancia(</a>
+<a name="306"><span class="lineNumber">     306 </span>    double lat1,</a>
+<a name="307"><span class="lineNumber">     307 </span>    double lon1,</a>
+<a name="308"><span class="lineNumber">     308 </span>    double lat2,</a>
+<a name="309"><span class="lineNumber">     309 </span>    double lon2,</a>
+<a name="310"><span class="lineNumber">     310 </span>  ) {</a>
+<a name="311"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     311 </span>    const R = 6371; // Radio de la Tierra en km</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+     const R =<span class="changedTokens"> -6371</span>; // Radio de la Tierra en km</span></td><td class="match">RegExp: pattern=([\s=\(])([1-9\.]+[0-9]+|0\.0*[1-9]) flags=m<span class="tooltip">Id: builtin.number.negative</span></td></tr></table>
+
+</div></a><a name="312"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     312 </span>    final dLat = _gradosARadianes(lat2 - lat1);</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+     final dLat = _gradosARadianes(lat2 <span class="changedTokens">+ </span>lat1);</span></td><td class="match">RegExp: pattern=-([^=]) flags=m<span class="tooltip">Id: builtin.arith.sub</span></td></tr></table>
+
+</div></a><a name="313"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     313 </span>    final dLon = _gradosARadianes(lon2 - lon1);</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+     final dLon = _gradosARadianes(lon2 <span class="changedTokens">+ </span>lon1);</span></td><td class="match">RegExp: pattern=-([^=]) flags=m<span class="tooltip">Id: builtin.arith.sub</span></td></tr></table>
+
+</div></a><a name="314"><span class="lineNumber">     314 </span>    final a =</a>
+<a name="315"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     315 </span>        sin(dLat / 2) * sin(dLat / 2) +</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+         sin(dLat / 2) * sin(dLat <span class="changedTokens">* </span>2) +</span></td><td class="match">RegExp: pattern=/([^=]) flags=m<span class="tooltip">Id: builtin.arith.div</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">2 :</td><td class="mutationText" width="87%"><span class="addedLine">+         sin(dLat / 2) * sin(dLat / 2) <span class="changedTokens">-</span></span></td><td class="match">RegExp: pattern=\+([^=]) flags=m<span class="tooltip">Id: builtin.arith.add</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">3 :</td><td class="mutationText" width="87%"><span class="addedLine">+         sin(dLat / 2) <span class="changedTokens">/ </span>sin(dLat / 2) +</span></td><td class="match">RegExp: pattern=\*([^=]) flags=m<span class="tooltip">Id: builtin.arith.mul</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">4 :</td><td class="mutationText" width="87%"><span class="addedLine">+         sin(dLat <span class="changedTokens">* </span>2) * sin(dLat / 2) +</span></td><td class="match">RegExp: pattern=/([^=]) flags=m<span class="tooltip">Id: builtin.arith.div</span></td></tr></table>
+
+</div></a><a name="316"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     316 </span>        cos(_gradosARadianes(lat1)) *</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+         cos(_gradosARadianes(lat1)) <span class="changedTokens">/</span></span></td><td class="match">RegExp: pattern=\*([^=]) flags=m<span class="tooltip">Id: builtin.arith.mul</span></td></tr></table>
+
+</div></a><a name="317"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     317 </span>            cos(_gradosARadianes(lat2)) *</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+             cos(_gradosARadianes(lat2)) <span class="changedTokens">/</span></span></td><td class="match">RegExp: pattern=\*([^=]) flags=m<span class="tooltip">Id: builtin.arith.mul</span></td></tr></table>
+
+</div></a><a name="318"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     318 </span>            sin(dLon / 2) *</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+             sin(dLon / 2) <span class="changedTokens">/</span></span></td><td class="match">RegExp: pattern=\*([^=]) flags=m<span class="tooltip">Id: builtin.arith.mul</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">2 :</td><td class="mutationText" width="87%"><span class="addedLine">+             sin(dLon <span class="changedTokens">* </span>2) *</span></td><td class="match">RegExp: pattern=/([^=]) flags=m<span class="tooltip">Id: builtin.arith.div</span></td></tr></table>
+
+</div></a><a name="319"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     319 </span>            sin(dLon / 2);</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+             sin(dLon <span class="changedTokens">* </span>2);</span></td><td class="match">RegExp: pattern=/([^=]) flags=m<span class="tooltip">Id: builtin.arith.div</span></td></tr></table>
+
+</div></a><a name="320"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     320 </span>    final c = 2 * atan2(sqrt(a), sqrt(1 - a));</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+     final c = 2 <span class="changedTokens">/ </span>atan2(sqrt(a), sqrt(1 - a));</span></td><td class="match">RegExp: pattern=\*([^=]) flags=m<span class="tooltip">Id: builtin.arith.mul</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">2 :</td><td class="mutationText" width="87%"><span class="addedLine">+     final c = 2 * atan2(sqrt(a), sqrt(1 <span class="changedTokens">+ </span>a));</span></td><td class="match">RegExp: pattern=-([^=]) flags=m<span class="tooltip">Id: builtin.arith.sub</span></td></tr></table>
+
+</div></a><a name="321"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     321 </span>    return R * c;</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+     return R <span class="changedTokens">/ </span>c;</span></td><td class="match">RegExp: pattern=\*([^=]) flags=m<span class="tooltip">Id: builtin.arith.mul</span></td></tr></table>
+
+</div></a><a name="322"><span class="lineNumber">     322 </span>  }</a>
+<a name="323"><span class="lineNumber">     323 </span></a>
+<a name="324"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     324 </span>  double _gradosARadianes(double grados) =&gt; grados * pi / 180.0;</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+   double _gradosARadianes(double grados) =&gt; grados <span class="changedTokens">/ </span>pi / 180.0;</span></td><td class="match">RegExp: pattern=\*([^=]) flags=m<span class="tooltip">Id: builtin.arith.mul</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">2 :</td><td class="mutationText" width="87%"><span class="addedLine">+   double _gradosARadianes(double grados) =&gt; grados * pi /<span class="changedTokens"> -180</span>.0;</span></td><td class="match">RegExp: pattern=([\s=\(])([1-9\.]+[0-9]+|0\.0*[1-9]) flags=m<span class="tooltip">Id: builtin.number.negative</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">3 :</td><td class="mutationText" width="87%"><span class="addedLine">+   double _gradosARadianes(double grados) =&gt; grados * pi <span class="changedTokens">* </span>180.0;</span></td><td class="match">RegExp: pattern=/([^=]) flags=m<span class="tooltip">Id: builtin.arith.div</span></td></tr></table>
+
+</div></a><a name="325"><span class="lineNumber">     325 </span></a>
+<a name="326"><span class="lineNumber">     326 </span>  /// Descarga las imágenes de las URLs [url1] y [url2] y las compara usando el servicio de IA.</a>
+<a name="327"><span class="lineNumber">     327 </span>  Future&lt;double&gt; _compararImagenes(String url1, String url2) async {</a>
+<a name="328"><span class="lineNumber">     328 </span>    try {</a>
+<a name="329"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     329 </span>      if (url1 == url2) return 1.0;</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+       if (url1 == url2) return<span class="changedTokens"> -1.0</span>;</span></td><td class="match">RegExp: pattern=([\s=\(])([1-9\.]+[0-9]+|0\.0*[1-9]) flags=m<span class="tooltip">Id: builtin.number.negative</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">2 :</td><td class="mutationText" width="87%"><span class="addedLine">+       if (url1 <span class="changedTokens">!=</span> url2) return 1.0;</span></td><td class="match">==<span class="tooltip">Id: builtin.op.eq</span></td></tr></table>
+<b>Detected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+      <span class="changedTokens"> if (!(url1 == url2) return 1.0;
+      final file1 = await _descargarImagen(url1);
+      final file2 = await _descargarImagen(url2);
+      return await _services.compararImagenes(file1, file2); // Usamos wrapper
+    } catch (e)) {</span></span></td><td class="match">RegExp: pattern=[\s]if[\s]*\((.*?)\)[\s]*{ flags=ms<span class="tooltip">Id: builtin.if</span></td></tr></table>
+
+</div></a><a name="330"><span class="lineNumber">     330 </span>      final file1 = await _descargarImagen(url1);</a>
+<a name="331"><span class="lineNumber">     331 </span>      final file2 = await _descargarImagen(url2);</a>
+<a name="332"><span class="lineNumber">     332 </span>      return await _services.compararImagenes(file1, file2); // Usamos wrapper</a>
+<a name="333"><span class="lineNumber">     333 </span>    } catch (e) {</a>
+<a name="334"><span class="lineNumber">     334 </span>      return 0.0;</a>
+<a name="335"><span class="lineNumber">     335 </span>    }</a>
+<a name="336"><span class="lineNumber">     336 </span>  }</a>
+<a name="337"><span class="lineNumber">     337 </span></a>
+<a name="338"><span class="lineNumber">     338 </span>  /// Descarga una imagen desde una URL y la guarda temporalmente.</a>
+<a name="339"><span class="lineNumber">     339 </span>  Future&lt;File&gt; _descargarImagen(String url) async {</a>
+<a name="340"><span class="lineNumber">     340 </span>    final response = await _httpClient.get(</a>
+<a name="341"><button class="collapsible hit"><pre class="fileContents"><span class="lineNumber">     341 </span>      Uri.parse(url),</pre></button>
+<div class="content">
+<b>Detected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+      <span class="changedTokens"> Uri.parse(
+    ,url));</span> // Usamos cliente inyectado</span></td><td class="match">RegExp: pattern=([\s][a-zA-Z]+?[^(;\s{}]*?)\s*\(([^,:;{}(]+?),([^,:;{}(]+?)\)\s*; flags=m<span class="tooltip">Id: builtin.function.arg2</span></td></tr></table>
+
+</div></a><a name="342"><span class="lineNumber">     342 </span>    ); // Usamos cliente inyectado</a>
+<a name="343"><span class="lineNumber">     343 </span>    final dir = await _services.getTempDir();</a>
+<a name="344"><span class="lineNumber">     344 </span>    final file = File(</a>
+<a name="345"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     345 </span>      "${dir.path}/${DateTime.now().millisecondsSinceEpoch}_temp.jpg",</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+       "${dir.path}<span class="changedTokens">*$</span>{DateTime.now().millisecondsSinceEpoch}_temp.jpg",</span></td><td class="match">RegExp: pattern=/([^=]) flags=m<span class="tooltip">Id: builtin.arith.div</span></td></tr></table>
+<b>Detected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+       "${dir.path}/$<span class="changedTokens">{</span></span></td><td class="match">RegExp: pattern=([{]\s*)([^\(;=\s}]+\([^;]+\)\s*;) flags=m<span class="tooltip">Id: builtin.function.removeVoidCall1</span></td></tr><tr><td colspan="3"><hr class="ruler"/></td></tr><tr><td class="mutationLabel" width="5%">2 :</td><td class="mutationText" width="87%"><span class="addedLine">+       "${dir.path<span class="changedTokens">}</span></span></td><td class="match">RegExp: pattern=([};]\s*)([^\(;=\s}]+\([^;]+\)\s*;) flags=m<span class="tooltip">Id: builtin.function.removeVoidCall2</span></td></tr></table>
+
+</div></a><a name="346"><span class="lineNumber">     346 </span>    );</a>
+<a name="347"><span class="lineNumber">     347 </span>    await file.writeAsBytes(response.bodyBytes);</a>
+<a name="348"><span class="lineNumber">     348 </span>    return file;</a>
+<a name="349"><span class="lineNumber">     349 </span>  }</a>
+<a name="350"><span class="lineNumber">     350 </span></a>
+<a name="351"><span class="lineNumber">     351 </span>  /// Notifica al usuario [usuarioId] sobre una posible coincidencia con su reporte.</a>
+<a name="352"><span class="lineNumber">     352 </span>  Future&lt;void&gt; _notificarCoincidencia(</a>
+<a name="353"><span class="lineNumber">     353 </span>    String usuarioId,</a>
+<a name="354"><span class="lineNumber">     354 </span>    String avistamientoId,</a>
+<a name="355"><span class="lineNumber">     355 </span>  ) async {</a>
+<a name="356"><span class="lineNumber">     356 </span>    try {</a>
+<a name="357"><span class="lineNumber">     357 </span>      await _services.enviarPush(</a>
+<a name="358"><span class="lineNumber">     358 </span>        titulo: "Posible coincidencia 🐾",</a>
+<a name="359"><span class="lineNumber">     359 </span>        cuerpo: "Tu mascota perdida podría haber sido vista recientemente.",</a>
+<a name="360"><span class="lineNumber">     360 </span>      );</a>
+<a name="361"><button class="collapsible problem"><pre class="fileContents"><span class="lineNumber">     361 </span>    } catch (e) {</pre></button>
+<div class="content">
+<b>Undetected mutations:</b>
+<table class="mutationTable" width="100%">
+<tr><td class="mutationLabel" width="5%">1 :</td><td class="mutationText" width="87%"><span class="addedLine">+     } catch (e) <span class="changedTokens">{
+      </span></span></td><td class="match">RegExp: pattern=([{]\s*)([^\(;=\s}]+\([^;]+\)\s*;) flags=m<span class="tooltip">Id: builtin.function.removeVoidCall1</span></td></tr></table>
+
+</div></a><a name="362"><span class="lineNumber">     362 </span>      debugPrint("Error notificacion: $e");</a>
+<a name="363"><span class="lineNumber">     363 </span>    }</a>
+<a name="364"><span class="lineNumber">     364 </span>  }</a>
+<a name="365"><span class="lineNumber">     365 </span>}</a>
+<a name="366"><span class="lineNumber">     366 </span></a>
+</pre>
+<script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.maxHeight){
+      content.style.maxHeight = null;
+    } else {
+      content.style.maxHeight = content.scrollHeight + "px";
+    }
+	for (k = 0; k < coll.length; k++) {
+      var content2 = coll[k].nextElementSibling;
+      if (content2.style.maxHeight && content.parentElement == content2){
+      content2.style.maxHeight = content2.scrollHeight + content.scrollHeight + "px";
+    }
+      
+    }
+    
+  });
+}
+</script><table width ="100%" cellspacing="0" border="0">
+  <tr><td><hr class="ruler"/></td></tr>
+  <tr><td class="footer">Generated by mutation-test version: 1.7.1</td></tr>
+</table>
+</body>
+</html>

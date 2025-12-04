@@ -111,7 +111,40 @@ jobs:
           path: trivy-report.html
 
   # -----------------------------------------------------------------
-  # JOB 4: GENERATE-REPORT
+  # JOB 4: MUTATION TESTING (Pruebas de Mutación)
+  # -----------------------------------------------------------------
+  mutation-testing:
+    name: Mutation Testing
+    runs-on: ubuntu-latest
+    needs: quality-checks
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.2'
+
+      - name: Install dependencies
+        working-directory: sos_mascota
+        run: flutter pub get
+
+      # Ejecutar Pruebas de Mutación
+      - name: Run Mutation Tests
+        working-directory: sos_mascota
+        # El comando corre la herramienta usando tu XML y exporta a HTML
+        run: dart run mutation_test:mutation_test mutation_config.xml
+
+      # Subir el reporte como artefacto
+      - name: Upload Mutation Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report-html
+          path: sos_mascota/mutation-report
+
+  # -----------------------------------------------------------------
+  # JOB 5: GENERATE-REPORT
   # -----------------------------------------------------------------
   generate-report:
     name: Generate Risk Report
@@ -141,13 +174,13 @@ jobs:
           path: coverage_risk_html
 
   # -----------------------------------------------------------------
-  # JOB 5: BUILD & DEPLOY DOCS
+  # JOB 6: BUILD & DEPLOY DOCS
   # -----------------------------------------------------------------
   build-docs:
     name: Build Portal & Deploy
     runs-on: ubuntu-latest
     # [CRÍTICO] Lista de dependencias actualizada
-    needs: [quality-checks, security-trivy, security-semgrep, generate-report]
+    needs: [quality-checks, security-trivy, security-semgrep, generate-report, mutation-testing]
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
@@ -195,6 +228,13 @@ jobs:
             mv artifacts/trivy-html/trivy-report.html _site/reports/trivy.html
           else
              echo "<h1>Reporte Trivy no encontrado</h1>" > _site/reports/trivy.html
+          fi
+
+          mkdir -p _site/reports/mutation
+          if [ -d "artifacts/mutation-report-html" ]; then
+            mv artifacts/mutation-report-html/* _site/reports/mutation/
+          else
+             echo "<h1>Reporte de Mutación no encontrado</h1>" > _site/reports/mutation/index.html
           fi
 
           # [CRÍTICO] Copiar dashboard desde la subcarpeta assets

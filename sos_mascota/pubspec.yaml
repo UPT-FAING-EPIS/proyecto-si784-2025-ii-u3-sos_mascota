@@ -61,6 +61,7 @@ dev_dependencies:
   plugin_platform_interface: ^2.1.8
   image_picker_platform_interface: ^2.11.1
   video_player_platform_interface: ^6.6.0
+  mutation_test: ^1.7.1
 flutter_icons:
   android: true
   ios: true
@@ -72,7 +73,7 @@ flutter:
   uses-material-design: true
   
   assets:
-    - assets/keys/service_account.json
+    # - assets/keys/service_account.json
     - assets/model/animales.tflite
     - assets/model/extractor_animales.tflite
     - assets/avatars/

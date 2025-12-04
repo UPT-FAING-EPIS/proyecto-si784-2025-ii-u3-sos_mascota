@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mutations version="1.0">
+    <files>
+        <file>lib/vistamodelo/reportes/reporte_vm.dart</file>
+    </files>
+
+    <exclude>
+        <regex pattern=".*\.g\.dart" dotAll="true"/>
+        <regex pattern=".*\.freezed\.dart" dotAll="true"/>
+        
+        <file>lib/firebase_options.dart</file>
+    </exclude>
+
+    <commands>
+        <command group="test" expected-return="0" working-directory=".">flutter test</command>
+    </commands>
+</mutations>
