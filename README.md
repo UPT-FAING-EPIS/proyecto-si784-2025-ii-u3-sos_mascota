@@ -17,7 +17,7 @@ La app permite que los usuarios:
 - Usen **Inteligencia Artificial (TFLite)** para identificar el tipo de animal.  
 - Participen en un **ranking colaborativo** de voluntarios confiables.
 
-> Proyecto académico desarrollado para el curso **Soluciones Móviles II – Universidad Privada de Tacna (UPT, 2025-II)**.
+> Proyecto académico desarrollado para el curso **Calidad y Pruebas de Software – Universidad Privada de Tacna (UPT, 2025-II)**.
 
 ---
 
