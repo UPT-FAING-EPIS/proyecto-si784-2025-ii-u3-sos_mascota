@@ -243,6 +243,4 @@ Este diagrama refleja cómo se **interconectan los servicios en la nube** y los 
 
 ---
 
-🔗 **Ver Repositorio con Pipeline Funcional:** [github.com/dennisdhm7/proyecto_sosmascota](https://github.com/dennisdhm7/proyecto_sosmascota)
-
 
