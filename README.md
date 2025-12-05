@@ -37,6 +37,20 @@ Brindar una solución tecnológica moderna y accesible que mejore la **efectivid
 
 ---
 
+## 📲 Descarga y Acceso a Pruebas (Android)
+
+Esta aplicación se encuentra en fase de **Prueba Interna en Google Play**. Para descargarla e instalarla en tu dispositivo Android, es necesario seguir estos pasos para obtener los permisos:
+
+1.  **Paso 1: Unirse al Grupo de Testers (Obligatorio)** Primero debes unirte a nuestro grupo de Google para que la Play Store te reconozca como verificador.  
+    🔗 **[Unirse al Grupo de Google - SOS Mascota](https://groups.google.com/g/testers-sos-mascota)** *(Clic en "Unirse al grupo")*
+
+2.  **Paso 2: Descargar desde Google Play** Una vez dentro del grupo, usa este enlace para aceptar la invitación y descargar la app.  
+    🔗 **[Descargar App en Google Play Store](https://play.google.com/apps/testing/com.smii.sosmascota)**
+
+> **Nota:** Si el enlace de descarga muestra un error, asegúrate de haber completado el Paso 1 o abre el enlace en modo incógnito e inicia sesión con la cuenta que uniste al grupo.
+
+---
+
 ## ⚙️ Tecnologías Utilizadas
 
 | Categoría | Herramientas |
@@ -56,11 +70,10 @@ Brindar una solución tecnológica moderna y accesible que mejore la **efectivid
 
 Para garantizar la fiabilidad y seguridad de **SOS Mascota Tacna**, se ha implementado un pipeline de **CI/CD con GitHub Actions** que ejecuta automáticamente análisis estático, escaneo de vulnerabilidades y pruebas en cada *push* al repositorio.
 
-🔗 **[VER DASHBOARD DE CALIDAD EN VIVO](https://dennisdhm7.github.io/proyecto_sosmascota/)** *(Acceso centralizado a todos los reportes de Sonar, Semgrep, Trivy y Cobertura)*
 
-## 🔍 1. Análisis Estático y Seguridad (DevSecOps)
+## 🔍 1. Calidad de Código y Seguridad (DevSecOps)
 
-Herramientas utilizadas para asegurar un código limpio y libre de vulnerabilidades.
+Herramientas utilizadas para asegurar un código limpio, robusto y libre de vulnerabilidades.
 
 🔗 **Github Page** [https://upt-faing-epis.github.io/proyecto-si784-2025-ii-u3-sos_mascota/](https://upt-faing-epis.github.io/proyecto-si784-2025-ii-u3-sos_mascota/)
 
@@ -69,9 +82,11 @@ Herramientas utilizadas para asegurar un código limpio y libre de vulnerabilida
 | **SonarCloud** | Calidad de Código, Bugs y Code Smells | ✅ **Passed** | [Ver Dashboard Sonar](https://sonarcloud.io/project/overview?id=dennisdhm7_proyecto_sosmascota) |
 | **Semgrep** | Seguridad Estática (SAST) | ✅ **0 Issues** | [Ver Reporte HTML](https://upt-faing-epis.github.io/proyecto-si784-2025-ii-u3-sos_mascota/reports/semgrep.html) |
 | **Trivy** | Seguridad de Dependencias (SCA) | ✅ **Clean** | [Ver Reporte HTML](https://upt-faing-epis.github.io/proyecto-si784-2025-ii-u3-sos_mascota/reports/trivy.html) |
-| **Flutter Analyze** | Linting y Reglas de Dart | ✅ **Passed** | *Integrado en Pipeline* |
+| **Mutation Test** | Pruebas de Mutación (Dinámico) | ✅ **Passed** | [Ver Reporte HTML](https://upt-faing-epis.github.io/proyecto-si784-2025-ii-u3-sos_mascota/reports/mutation/index.html) |
 
 > **Nota:** Los reportes HTML son generados automáticamente y desplegados en GitHub Pages mediante el workflow de integración continua.
+>
+> **Actualización:** Se ha reemplazado la herramienta **Snyk** por **Trivy** para la gestión y escaneo de vulnerabilidades en dependencias.
 
 ---
 
