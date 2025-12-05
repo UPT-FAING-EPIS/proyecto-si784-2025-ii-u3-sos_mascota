@@ -247,5 +247,4 @@ Este diagrama refleja cómo se **interconectan los servicios en la nube** y los 
 
 🔗 **Ver Repositorio con Pipeline Funcional:** [github.com/dennisdhm7/proyecto_sosmascota](https://github.com/dennisdhm7/proyecto_sosmascota)
 
-🔗 **Link para prueba interna Google Play:** [https://play.google.com/apps/internaltest/4701613541983757482](https://play.google.com/apps/internaltest/4701613541983757482)
 
