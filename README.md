@@ -1,7 +1,5 @@
 # 🐶 SOS Mascota Tacna
 
-🔗 **Ver Repositorio con Pipeline Funcional:** [github.com/dennisdhm7/proyecto_sosmascota](https://github.com/dennisdhm7/proyecto_sosmascota)
-
 🔗 **Video Funcionamiento App SOS Mascota:** [https://youtu.be/q5smk8xjDO4](https://youtu.be/q5smk8xjDO4)
 
 🔗 **Ver evidendencias de despliegue de App en otros dispositivos de estudiantes de la Upt:** [https://youtu.be/JPnnGd_emIo?si=jdu-8v0MOIeFXCKn](https://youtu.be/JPnnGd_emIo?si=jdu-8v0MOIeFXCKn)
